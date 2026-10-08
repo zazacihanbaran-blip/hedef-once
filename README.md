@@ -5,6 +5,10 @@ Canlı prediction motoru sabit kurallı araştırma skoru üretir; walk-forward 
 
 Arayüzde her teknik verinin yanında günlük Türkçe karşılığı bulunur. Üstteki **“Şimdi ne yapmalıyım?”** kartı kararı `İşlem açma`, `Şimdilik bekle` veya `Sadece paper takip et` olarak söyler ve değişmesi beklenen şartları listeler. Bu metinler sinyal kaydına da yazıldığı için ileride aynı açıklamalar bildirimlerde kullanılabilir.
 
+## Kısa vadeli giriş zamanlaması
+
+Prediction motoru artık günlük hisse yönünü ana karar olarak kullanmaz. +%1/+%1,5 hedefi için tamamlanmış 5 dakikalık mumlarda satış sonrası dönüşü, kısa ortalama ivmesini, yükselen dip veya üç mumluk kırılımı, yakın desteğe göre stop uzaklığını ve hedefe tahmini süreyi birlikte ölçer. Memory, sektör, makro ve haber katmanları bağlam ve risk uyarısıdır; güçlü bir yakın dönem tetiğini tek başına iptal etmez. Arayüz `Giriş penceresi: Açık / Hazırlanıyor / Kapalı / Engelli` ve `Taktik risk: Düşük / Orta / Yüksek` alanlarını gösterir.
+
 ## Çalıştırma
 
 Node.js 20 veya üzeri gerekir. Ek paket kurulmaz.

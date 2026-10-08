@@ -14,7 +14,8 @@ const elements = Object.fromEntries([
   "softVetoList", "observedAt", "quoteGrid", "newsObservedAt", "newsList", "eventList", "refreshButton",
   "guidancePanel", "guidanceTitle", "guidanceSummary", "guidanceWaitFor", "metricChangeMeaning",
   "metricVwapMeaning", "metricRangeMeaning", "metricVolumeMeaning", "metricBidAskMeaning",
-  "metricSpreadMeaning", "stopMeaning", "netTargetMeaning", "memoryMeaning", "sectorMeaning"
+  "metricSpreadMeaning", "stopMeaning", "netTargetMeaning", "memoryMeaning", "sectorMeaning",
+  "timingStatus", "riskStatus"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -63,11 +64,14 @@ const vetoLabels = {
   HIGH_IMPACT_EVENT_TODAY: "Bugün yüksek etkili olay var",
   MIXED_MEMORY_BASKET: "Memory grubu karışık",
   NO_VWAP_RECLAIM: "VWAP geri alımı yok",
-  NEGATIVE_MEMORY_BASKET: "Memory grubu negatif"
+  NEGATIVE_MEMORY_BASKET: "Memory grubu negatif",
+  NO_ENTRY_TRIGGER: "Yakın giriş tetiği oluşmadı",
+  ENTRY_TRIGGER_FORMING: "Yakın giriş tetiği hazırlanıyor",
+  CHASING_PRICE: "Fiyat giriş için fazla uzadı"
 };
 
 const scoreLabels = {
-  priceVolume: "Hareket",
+  priceVolume: "Giriş zamanlaması",
   volatilityTime: "Hedef süresi",
   sectorBasket: "Memory/sektör",
   newsEvent: "Haber/olay",
@@ -78,7 +82,7 @@ const scoreLabels = {
 };
 
 const scoreQuestions = {
-  priceVolume: "Fiyat gerçekten çalışıyor mu?",
+  priceVolume: "Önümüzdeki kısa pencere için tetik oluştu mu?",
   volatilityTime: "Hedef beklenen sürede gelebilir mi?",
   sectorBasket: "Benzer hisseler destekliyor mu?",
   newsEvent: "Haber ve olay ortamı güvenli mi?",
@@ -115,6 +119,8 @@ function renderPrediction(predictions) {
     elements.decisionScore.textContent = "—";
     elements.probabilityStatus.textContent = "Kalibrasyon bekliyor";
     elements.signalTime.textContent = "Sinyal bekleniyor";
+    elements.timingStatus.textContent = "Bekleniyor";
+    elements.riskStatus.textContent = "—";
     elements.scoreGrid.replaceChildren();
     renderGuidance(null);
     return;
@@ -123,9 +129,14 @@ function renderPrediction(predictions) {
   elements.decisionTitle.textContent = decisionText;
   elements.decisionReason.textContent = candidate.hardVetos.length
     ? vetoLabels[candidate.hardVetos[0]] ?? candidate.hardVetos[0]
-    : candidate.softVetos.length ? vetoLabels[candidate.softVetos[0]] ?? candidate.softVetos[0] : "Araştırma kuralları olumlu.";
+    : candidate.signalWindow === "NOW" ? candidate.timingReasons?.[0] ?? "Kısa vadeli giriş tetiği oluştu."
+      : candidate.softVetos.length ? vetoLabels[candidate.softVetos[0]] ?? candidate.softVetos[0] : "Araştırma kuralları olumlu.";
   elements.decisionScore.textContent = `${candidate.decisionScore}/100`;
   elements.probabilityStatus.textContent = "Henüz üretilmiyor";
+  elements.timingStatus.textContent = ({ NOW: "Açık", PREPARE: "Hazırlanıyor", WAIT: "Kapalı", BLOCKED: "Engelli" })[candidate.signalWindow] ?? "—";
+  elements.riskStatus.textContent = ({ LOW: "Düşük", MEDIUM: "Orta", HIGH: "Yüksek" })[candidate.riskLevel] ?? "—";
+  elements.timingStatus.className = candidate.signalWindow === "NOW" ? "positive" : candidate.signalWindow === "BLOCKED" ? "negative" : "warning-text";
+  elements.riskStatus.className = candidate.riskLevel === "LOW" ? "positive" : candidate.riskLevel === "HIGH" ? "negative" : "warning-text";
   elements.entryValue.textContent = formatPrice(candidate.entryPrice);
   elements.targetValue.textContent = formatPrice(candidate.targetPrice);
   elements.stopValue.textContent = formatPrice(candidate.stopPrice);

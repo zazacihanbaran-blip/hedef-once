@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { aggregateBars } from "../lib/features.mjs";
+import { aggregateBars, classifyEntryTiming } from "../lib/features.mjs";
 import { evaluateTargetBeforeStop } from "../lib/evaluator.mjs";
 import { generatePredictions } from "../lib/predictor.mjs";
 
@@ -15,6 +15,22 @@ test("tamamlanmamış 5 dakikalık bar feature'a girmez", () => {
   }));
   const grouped = aggregateBars(bars, 300, 1_601);
   assert.ok(grouped.every((bar) => bar.timestamp + 300 <= 1_601));
+});
+
+test("satış sonrası güçlü 5 dakikalık dönüş yakın giriş tetiği sayılır", () => {
+  const closes = [100.1, 100.05, 100, 99.96, 99.93, 99.9, 99.86];
+  const bars = closes.map((close, index) => ({
+    timestamp: 1_000 + index * 300,
+    open: index === closes.length - 1 ? 99.92 : close + 0.03,
+    high: close + 0.08,
+    low: close - 0.08,
+    close,
+    volume: 1_000
+  }));
+  bars.push({ timestamp: 3_100, open: 99.86, high: 100.28, low: 99.82, close: 100.24, volume: 1_500 });
+  const timing = classifyEntryTiming(bars, 100.4, 0.01);
+  assert.equal(timing.state, "REVERSAL_TRIGGER");
+  assert.ok(timing.score >= 80);
 });
 
 test("aynı barda hedef ve stop teması konservatif olarak stop sayılır", () => {
@@ -70,4 +86,7 @@ test("canlı araştırma motoru olasılık uydurmaz", async () => {
   assert.ok(predictions.candidates.every((candidate) => candidate.mode === "RESEARCH_ONLY"));
   assert.ok(predictions.candidates.every((candidate) => candidate.userGuidance?.action));
   assert.ok(predictions.candidates.every((candidate) => Array.isArray(candidate.userGuidance?.waitFor)));
+  assert.ok(predictions.candidates.every((candidate) => candidate.signalWindow));
+  assert.ok(predictions.candidates.every((candidate) => candidate.riskLevel));
+  assert.ok(predictions.candidates.every((candidate) => candidate.signalWindow === "NOW" || candidate.finalDecision !== "PAPER_RESEARCH"));
 });

@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2-research",
+  "version": "0.1.3-timing-research",
   "mode": "RESEARCH_ONLY",
   "barSeconds": 300,
   "researchNotionalUsd": 5000,
@@ -8,14 +8,14 @@
   "maxSpreadBps": 10,
   "openChaosMinutes": 10,
   "weights": {
-    "priceVolume": 20,
+    "priceVolume": 35,
     "volatilityTime": 20,
-    "sectorBasket": 18,
-    "newsEvent": 17,
-    "targetStop": 10,
-    "macro": 7,
-    "execution": 5,
-    "crowdedRisk": 3
+    "sectorBasket": 7,
+    "newsEvent": 3,
+    "targetStop": 20,
+    "macro": 3,
+    "execution": 10,
+    "crowdedRisk": 2
   },
   "models": {
     "quick": {
