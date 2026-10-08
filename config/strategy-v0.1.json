@@ -1,0 +1,38 @@
+{
+  "version": "0.1.1-research",
+  "mode": "RESEARCH_ONLY",
+  "barSeconds": 300,
+  "researchNotionalUsd": 5000,
+  "feeCasesUsd": [1.5, 3],
+  "slippageStressBpsPerSide": 5,
+  "maxSpreadBps": 10,
+  "openChaosMinutes": 10,
+  "weights": {
+    "priceVolume": 20,
+    "volatilityTime": 20,
+    "sectorBasket": 18,
+    "newsEvent": 17,
+    "targetStop": 10,
+    "macro": 7,
+    "execution": 5,
+    "crowdedRisk": 3
+  },
+  "models": {
+    "quick": {
+      "label": "Hızlı +1",
+      "targetPct": 0.01,
+      "minStopPct": 0.0045,
+      "maxStopPct": 0.0085,
+      "minRiskReward": 1.2,
+      "maxHoldingSessions": 1
+    },
+    "extended": {
+      "label": "Geniş +1,5",
+      "targetPct": 0.015,
+      "minStopPct": 0.0065,
+      "maxStopPct": 0.0115,
+      "minRiskReward": 1.3,
+      "maxHoldingSessions": 3
+    }
+  }
+}

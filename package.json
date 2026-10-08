@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.mjs",
     "collect": "node server.mjs --collect-once",
-    "test": "node --test"
+    "test": "node --test",
+    "audit": "node scripts/audit-data.mjs",
+    "label": "node scripts/label-signals.mjs"
   },
   "engines": {
     "node": ">=20"

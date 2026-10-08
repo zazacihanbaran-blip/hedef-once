@@ -8,9 +8,10 @@ const state = {
 const elements = Object.fromEntries([
   "connectionDot", "marketState", "sourceNotice", "decisionTitle", "decisionReason", "selectedSymbol",
   "livePrice", "dayChange", "lastMarketTime", "dataDelay", "dataCoverage", "entryValue", "targetValue",
-  "timeValue", "quoteSubtitle", "metricChange", "metricVwap", "metricRange", "metricVolume", "memoryState",
+  "timeValue", "decisionScore", "probabilityStatus", "quoteSubtitle", "metricChange", "metricVwap", "metricRange", "metricVolume", "memoryState",
   "metricBidAsk", "metricSpread", "sectorState", "vetoText", "priceLayer", "newsLayer", "calendarLayer",
-  "executionLayer", "observedAt", "quoteGrid", "newsObservedAt", "newsList", "eventList", "refreshButton"
+  "executionLayer", "stopValue", "netTargetValue", "modelLayer", "signalTime", "scoreGrid", "hardVetoList",
+  "softVetoList", "observedAt", "quoteGrid", "newsObservedAt", "newsList", "eventList", "refreshButton"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -41,6 +42,69 @@ function stateLabel(value) {
 function layerState(element, connected, readyLabel = "Bağlı") {
   element.textContent = connected ? readyLabel : "Eksik";
   element.className = connected ? "positive" : "warning-text";
+}
+
+const vetoLabels = {
+  INSUFFICIENT_HISTORY: "Yeterli 5 dk geçmişi yok",
+  STALE_OR_MISSING_QUOTE: "Bid/ask eksik veya eski",
+  OUTSIDE_REGULAR_SESSION: "Normal seans dışında",
+  OPEN_CHAOS_WINDOW: "Açılışın ilk 10 dakikası",
+  SPREAD_TOO_WIDE: "Spread fazla geniş",
+  INVALID_STOP: "Geçerli stop kurulamadı",
+  STOP_TOO_WIDE: "Gerekli stop fazla uzak",
+  RISK_REWARD_TOO_LOW: "Risk/getiri yetersiz",
+  SECTOR_BREAKDOWN: "Sektör ETF'leri kırılıyor",
+  NONPOSITIVE_NET_TARGET: "Maliyet sonrası hedef anlamsız",
+  CONTEXT_DATA_MISSING: "Haber/takvim verisi eksik",
+  NEWS_SENTIMENT_UNCLASSIFIED: "Yeni haberin yönü henüz sınıflanmadı",
+  HIGH_IMPACT_EVENT_TODAY: "Bugün yüksek etkili olay var",
+  MIXED_MEMORY_BASKET: "Memory grubu karışık",
+  NO_VWAP_RECLAIM: "VWAP geri alımı yok",
+  NEGATIVE_MEMORY_BASKET: "Memory grubu negatif"
+};
+
+const scoreLabels = {
+  priceVolume: "Hareket",
+  volatilityTime: "Hedef süresi",
+  sectorBasket: "Memory/sektör",
+  newsEvent: "Haber/olay",
+  targetStop: "Hedef/stop",
+  macro: "Genel piyasa",
+  execution: "Giriş kalitesi",
+  crowdedRisk: "Yorgunluk riski"
+};
+
+function renderPrediction(predictions) {
+  const candidate = predictions?.candidates?.find((item) => item.symbol === state.symbol && item.modelKey === state.model);
+  if (!candidate) {
+    elements.decisionScore.textContent = "—";
+    elements.probabilityStatus.textContent = "Kalibrasyon bekliyor";
+    elements.signalTime.textContent = "Sinyal bekleniyor";
+    elements.scoreGrid.replaceChildren();
+    return;
+  }
+  const decisionText = ({ NO_TRADE: "Uzak dur", WATCH: "İzle", PAPER_RESEARCH: "Kağıt araştırma adayı" })[candidate.finalDecision] ?? candidate.finalDecision;
+  elements.decisionTitle.textContent = decisionText;
+  elements.decisionReason.textContent = candidate.hardVetos.length
+    ? vetoLabels[candidate.hardVetos[0]] ?? candidate.hardVetos[0]
+    : candidate.softVetos.length ? vetoLabels[candidate.softVetos[0]] ?? candidate.softVetos[0] : "Araştırma kuralları olumlu.";
+  elements.decisionScore.textContent = `${candidate.decisionScore}/100`;
+  elements.probabilityStatus.textContent = "Henüz üretilmiyor";
+  elements.entryValue.textContent = formatPrice(candidate.entryPrice);
+  elements.targetValue.textContent = formatPrice(candidate.targetPrice);
+  elements.stopValue.textContent = formatPrice(candidate.stopPrice);
+  elements.timeValue.textContent = Number.isFinite(candidate.expectedMinutes) ? `~${candidate.expectedMinutes} dk` : "Belirsiz";
+  elements.netTargetValue.textContent = formatPercent(candidate.netTargetPctFeeCaseB * 100);
+  elements.vetoText.textContent = candidate.hardVetos.length ? (vetoLabels[candidate.hardVetos[0]] ?? candidate.hardVetos[0]) : "Model henüz doğrulanmadı";
+  elements.signalTime.textContent = `Karar zamanı ${formatClock(candidate.decisionAt)}`;
+  elements.hardVetoList.textContent = candidate.hardVetos.length ? candidate.hardVetos.map((code) => vetoLabels[code] ?? code).join(" · ") : "Yok";
+  elements.softVetoList.textContent = candidate.softVetos.length ? candidate.softVetos.map((code) => vetoLabels[code] ?? code).join(" · ") : "Yok";
+  elements.scoreGrid.replaceChildren(...Object.entries(candidate.scores).map(([key, value]) => {
+    const item = document.createElement("article");
+    item.className = "score-item";
+    item.innerHTML = `<div><span>${scoreLabels[key] ?? key}</span><strong>${Math.round(value)}</strong></div><div class="score-track"><i style="width:${Math.max(0, Math.min(100, value))}%"></i></div>`;
+    return item;
+  }));
 }
 
 function renderContext(context) {
@@ -164,6 +228,7 @@ function render() {
   elements.observedAt.textContent = `Son toplama: ${formatClock(snapshot.observedAt)}`;
   renderQuoteGrid(snapshot);
   renderContext(snapshot.context);
+  renderPrediction(snapshot.predictions);
 }
 
 async function loadSnapshot(force = false) {

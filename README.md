@@ -1,6 +1,7 @@
 # Hedef Önce — gerçek veri başlangıcı
 
-Bu sürüm, seçilen **Karar Odaklı** arayüzü API anahtarı istemeyen gerçek piyasa veri toplayıcısına bağlar. Emir göndermez ve henüz işlem skoru üretmez.
+Bu sürüm, seçilen **Karar Odaklı** arayüzü API anahtarı istemeyen gerçek piyasa veri toplayıcısına bağlar. Emir göndermez; canlı araştırma skoru üretir.
+Canlı prediction motoru sabit kurallı araştırma skoru üretir; walk-forward kalibrasyonu tamamlanana kadar kazanma olasılığı üretmez ve bütün adayları paper araştırmasıyla sınırlar.
 
 ## Çalıştırma
 
@@ -23,6 +24,12 @@ Doğrulamalar:
 
 ```powershell
 npm test
+```
+
+Point-in-time veri ve sinyal birikimini denetlemek için:
+
+```powershell
+npm run audit
 ```
 
 ## Şu anda alınan gerçek veriler
@@ -63,3 +70,13 @@ Fiyat katmanı tek başına Memory Momentum Long Engine v0.1'i temsil etmez. Şu
 - walk-forward ile kalibrasyon
 
 Bu sınır arayüzde “Eksik veri katmanları” olarak gösterilir.
+
+## Prediction ve tarafsız backtest sınırı
+
+- Her tamamlanmış 5 dakikalık bar için MU/SNDK × Hızlı +1/Geniş +1,5 adayları oluşturulur.
+- Skorun sekiz katmanı, giriş/target/stop, maliyet sonrası hedef ve bütün veto nedenleri sinyal kaydına yazılır.
+- `pTargetFirst`, `pStopFirst` ve `pTimeout` kalibrasyon öncesinde daima `null` kalır.
+- Strateji sinyal dosyalarını; evaluator ise yalnızca sonradan gelen barları okur.
+- Aynı mumda hedef ve stop görülürse ana sonuç konservatif olarak `STOP_FIRST` olur.
+- Kolektörün ilk çalışmasında geriye alınan barlar `BACKFILL_OBSERVED_NOW` olduğundan FULL_PIT haberli backtestte kullanılamaz.
+- Objektif canlı-forward veri seti, kolektörün çalışmaya başladığı andan itibaren birikir.

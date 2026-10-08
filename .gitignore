@@ -3,5 +3,8 @@ data/snapshots/
 data/latest.json
 data/context/
 data/latest-context.json
+data/signals/
+data/latest-predictions.json
+data/labels/
 data/state.json
 *.log

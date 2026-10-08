@@ -32,7 +32,7 @@
       </div>
 
       <section class="decision-panel" aria-labelledby="decisionTitle">
-        <div class="decision-label"><span class="status-dot warning"></span>Şu anki karar</div>
+        <div class="decision-label"><span class="status-dot warning"></span>Şu anki karar <b id="engineMode">ARAŞTIRMA MODU</b></div>
         <div class="decision-heading">
           <div>
             <h1 id="decisionTitle">Veri toplanıyor</h1>
@@ -44,6 +44,8 @@
           <span id="lastMarketTime">Piyasa zamanı: —</span>
           <span id="dataDelay">Veri gecikmesi: —</span>
           <span id="dataCoverage">Fiyat kapsamı: —</span>
+          <span>Araştırma skoru: <b id="decisionScore">—</b></span>
+          <span>Olasılık: <b id="probabilityStatus">Kalibrasyon bekliyor</b></span>
         </div>
       </section>
 
@@ -65,6 +67,8 @@
             <div><span>Seans hacmi</span><strong id="metricVolume">—</strong></div>
             <div><span>Bid / ask</span><strong id="metricBidAsk">—</strong></div>
             <div><span>Spread</span><strong id="metricSpread">—</strong></div>
+            <div><span>Fikrin bozulduğu seviye</span><strong id="stopValue">—</strong></div>
+            <div><span>Maliyet sonrası hedef</span><strong id="netTargetValue">—</strong></div>
             <div><span>Memory grubu</span><strong id="memoryState">—</strong></div>
             <div><span>Semiconductor ETF'leri</span><strong id="sectorState">—</strong></div>
           </div>
@@ -78,11 +82,17 @@
             <div><span>Canlı haber ve SEC</span><strong id="newsLayer">Kontrol ediliyor</strong></div>
             <div><span>Olay takvimi</span><strong id="calendarLayer">Kontrol ediliyor</strong></div>
             <div><span>Bid / ask ve spread</span><strong id="executionLayer">Kontrol ediliyor</strong></div>
-            <div><span>Model skoru</span><strong class="muted-text">Kilitli</strong></div>
+            <div><span>Model durumu</span><strong id="modelLayer" class="warning-text">Araştırma modu</strong></div>
           </div>
           <p>Model, gerekli veri katmanları tamamlanmadan işlem puanı veya olasılık üretmez.</p>
         </section>
       </div>
+
+      <section class="score-panel">
+        <div class="panel-heading"><div><h2>Kararın sekiz katmanı</h2><p>Skor araştırma amaçlıdır; kazanma olasılığı değildir</p></div><span id="signalTime">Sinyal bekleniyor</span></div>
+        <div class="score-grid" id="scoreGrid"></div>
+        <div class="veto-summary"><div><span>Kesin engeller</span><strong id="hardVetoList">—</strong></div><div><span>Dikkat noktaları</span><strong id="softVetoList">—</strong></div></div>
+      </section>
 
       <section class="watchlist-panel">
         <div class="panel-heading"><div><h2>İzlenen piyasa</h2><p>Memory, sektör ve makro sepetinin son erişilebilir değerleri</p></div><span id="observedAt">Son toplama: —</span></div>

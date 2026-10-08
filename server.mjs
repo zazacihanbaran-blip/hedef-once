@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { COLLECTION_INTERVAL_MS, CONTEXT_INTERVAL_MS } from "./lib/config.mjs";
 import { collectMarketSnapshot } from "./lib/collector.mjs";
 import { collectContextSnapshot } from "./lib/context.mjs";
+import { generatePredictions } from "./lib/predictor.mjs";
+import { labelMaturedSignals } from "./lib/labeler.mjs";
 import { PointInTimeStore } from "./lib/store.mjs";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -15,14 +17,17 @@ await store.init();
 
 let latest = await store.loadLatest();
 let latestContext = await store.loadLatestContext();
+let latestPredictions = await store.loadLatestPredictions();
+let latestCharts = null;
 let collecting = null;
 let collectingContext = null;
 
 async function refresh() {
   if (collecting) return collecting;
   collecting = collectMarketSnapshot(store)
-    .then((snapshot) => {
+    .then(({ snapshot, charts }) => {
       latest = snapshot;
+      latestCharts = charts;
       console.log(`[${snapshot.observedAt}] ${Object.keys(snapshot.quotes).length} piyasa serisi güncellendi.`);
       return snapshot;
     })
@@ -34,6 +39,14 @@ async function refresh() {
       collecting = null;
     });
   return collecting;
+}
+
+async function refreshPredictions() {
+  if (!latest || !latestCharts) return latestPredictions;
+  latestPredictions = await generatePredictions(latest, latestCharts, latestContext);
+  await store.savePredictions(latestPredictions);
+  await labelMaturedSignals(dataDir);
+  return latestPredictions;
 }
 
 async function refreshContext() {
@@ -56,6 +69,7 @@ async function refreshContext() {
 
 if (process.argv.includes("--collect-once")) {
   await Promise.all([refresh(), refreshContext()]);
+  await refreshPredictions();
   process.exit(0);
 }
 
@@ -109,13 +123,14 @@ const server = createServer(async (request, response) => {
       sendJson(response, 503, { error: "Henüz piyasa verisi alınamadı." });
       return;
     }
-    sendJson(response, 200, { ...latest, context: latestContext });
+    sendJson(response, 200, { ...latest, context: latestContext, predictions: latestPredictions });
     return;
   }
   if (url.pathname === "/api/collect" && request.method === "POST") {
     try {
       const [market, context] = await Promise.all([refresh(), refreshContext()]);
-      sendJson(response, 200, { ...market, context });
+      const predictions = await refreshPredictions();
+      sendJson(response, 200, { ...market, context, predictions });
     } catch (error) {
       sendJson(response, 502, { error: error.message });
     }
@@ -127,8 +142,7 @@ const server = createServer(async (request, response) => {
 const port = Number(process.env.PORT ?? 4173);
 server.listen(port, "127.0.0.1", () => {
   console.log(`Hedef Önce: http://127.0.0.1:${port}`);
-  refresh().catch(() => {});
-  refreshContext().catch(() => {});
-  setInterval(() => refresh().catch(() => {}), COLLECTION_INTERVAL_MS).unref();
-  setInterval(() => refreshContext().catch(() => {}), CONTEXT_INTERVAL_MS).unref();
+  Promise.all([refresh(), refreshContext()]).then(refreshPredictions).catch(() => {});
+  setInterval(() => refresh().then(refreshPredictions).catch(() => {}), COLLECTION_INTERVAL_MS).unref();
+  setInterval(() => refreshContext().then(refreshPredictions).catch(() => {}), CONTEXT_INTERVAL_MS).unref();
 });
