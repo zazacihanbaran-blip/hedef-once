@@ -1,0 +1,7 @@
+data/bars/
+data/snapshots/
+data/latest.json
+data/context/
+data/latest-context.json
+data/state.json
+*.log

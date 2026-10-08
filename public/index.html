@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hedef Önce — MU / SNDK Long Radar</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark">HÖ</span><div><strong>Hedef Önce</strong><small>MU / SNDK Long Radar</small></div></div>
+      <div class="market-state"><span class="status-dot" id="connectionDot"></span><span id="marketState">Veri bekleniyor</span><span class="mode">PAPER</span></div>
+      <button class="icon-button" type="button" id="refreshButton" aria-label="Veriyi yenile">↻</button>
+    </header>
+
+    <main>
+      <div class="notice" id="sourceNotice">
+        <strong>Anahtarsız araştırma akışı</strong>
+        <span>Veri gecikmesi ve eksik katmanlar görünür tutulur. Emir gönderilmez.</span>
+      </div>
+
+      <div class="switch-row">
+        <div class="segment" role="group" aria-label="Hisse seçimi">
+          <button class="active" type="button" data-symbol="MU">MU</button>
+          <button type="button" data-symbol="SNDK">SNDK</button>
+        </div>
+        <div class="segment" role="group" aria-label="Hedef modeli">
+          <button class="active" type="button" data-model="quick">Hızlı +1</button>
+          <button type="button" data-model="extended">Geniş +1,5</button>
+        </div>
+      </div>
+
+      <section class="decision-panel" aria-labelledby="decisionTitle">
+        <div class="decision-label"><span class="status-dot warning"></span>Şu anki karar</div>
+        <div class="decision-heading">
+          <div>
+            <h1 id="decisionTitle">Veri toplanıyor</h1>
+            <p id="decisionReason">Piyasa katmanı hazırlanıyor.</p>
+          </div>
+          <div class="live-price"><span id="selectedSymbol">MU</span><strong id="livePrice">—</strong><small id="dayChange">—</small></div>
+        </div>
+        <div class="data-chips">
+          <span id="lastMarketTime">Piyasa zamanı: —</span>
+          <span id="dataDelay">Veri gecikmesi: —</span>
+          <span id="dataCoverage">Fiyat kapsamı: —</span>
+        </div>
+      </section>
+
+      <section class="price-path" aria-label="İşlem planı">
+        <div class="path-point"><span>1</span><small>Giriş bölgesi</small><strong id="entryValue">Skor sonrası</strong></div>
+        <div class="path-line"></div>
+        <div class="path-point target"><span>2</span><small>Hedef</small><strong id="targetValue">+%1</strong></div>
+        <div class="path-line"></div>
+        <div class="path-point"><span>3</span><small>Beklenen süre</small><strong id="timeValue">Aynı seans</strong></div>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><h2>Gerçek piyasa görünümü</h2><p id="quoteSubtitle">MU için son erişilebilir veri</p></div><span class="source-tag">PUBLIC DATA</span></div>
+          <div class="metric-list">
+            <div><span>Günlük hareket</span><strong id="metricChange">—</strong></div>
+            <div><span>Seans VWAP</span><strong id="metricVwap">—</strong></div>
+            <div><span>Seans yüksek / düşük</span><strong id="metricRange">—</strong></div>
+            <div><span>Seans hacmi</span><strong id="metricVolume">—</strong></div>
+            <div><span>Bid / ask</span><strong id="metricBidAsk">—</strong></div>
+            <div><span>Spread</span><strong id="metricSpread">—</strong></div>
+            <div><span>Memory grubu</span><strong id="memoryState">—</strong></div>
+            <div><span>Semiconductor ETF'leri</span><strong id="sectorState">—</strong></div>
+          </div>
+        </section>
+
+        <section class="panel guard-panel">
+          <div class="guard-heading"><span class="shield">◇</span><div><span>İşlemi engelleyen durum</span><strong id="vetoText">Eksik veri katmanları</strong></div></div>
+          <hr>
+          <div class="readiness-list">
+            <div><span>Fiyat ve sektör verisi</span><strong id="priceLayer">Kontrol ediliyor</strong></div>
+            <div><span>Canlı haber ve SEC</span><strong id="newsLayer">Kontrol ediliyor</strong></div>
+            <div><span>Olay takvimi</span><strong id="calendarLayer">Kontrol ediliyor</strong></div>
+            <div><span>Bid / ask ve spread</span><strong id="executionLayer">Kontrol ediliyor</strong></div>
+            <div><span>Model skoru</span><strong class="muted-text">Kilitli</strong></div>
+          </div>
+          <p>Model, gerekli veri katmanları tamamlanmadan işlem puanı veya olasılık üretmez.</p>
+        </section>
+      </div>
+
+      <section class="watchlist-panel">
+        <div class="panel-heading"><div><h2>İzlenen piyasa</h2><p>Memory, sektör ve makro sepetinin son erişilebilir değerleri</p></div><span id="observedAt">Son toplama: —</span></div>
+        <div class="quote-grid" id="quoteGrid" aria-live="polite"></div>
+      </section>
+
+      <div class="context-grid">
+        <section class="context-panel">
+          <div class="panel-heading"><div><h2>Canlı haber ve SEC</h2><p>Yayın zamanı ile ilk görülme zamanı ayrı kaydedilir</p></div><span id="newsObservedAt">—</span></div>
+          <div class="context-list" id="newsList" aria-live="polite"><p class="empty-state">Haber verisi bekleniyor.</p></div>
+        </section>
+        <section class="context-panel">
+          <div class="panel-heading"><div><h2>Yaklaşan olaylar</h2><p>ABD ekonomik takvimi ve MU/SNDK bilanço kontrolü</p></div><span>8 gün</span></div>
+          <div class="context-list" id="eventList" aria-live="polite"><p class="empty-state">Takvim verisi bekleniyor.</p></div>
+        </section>
+      </div>
+
+      <div class="action-row">
+        <button class="secondary" type="button" disabled>Bu adayı geç</button>
+        <button class="primary" type="button" disabled>Paper takip et</button>
+        <span>Skor ve backtest kalibrasyonu tamamlanınca etkinleşecek.</span>
+      </div>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Ana bölümler">
+      <button class="active" type="button"><span>⌁</span>Fırsatlar</button>
+      <button type="button"><span>◌</span>Takipler</button>
+      <button type="button"><span>⌁</span>Karne</button>
+      <button type="button"><span>⚙</span>Ayarlar</button>
+    </nav>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "hedef-once",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "collect": "node server.mjs --collect-once",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

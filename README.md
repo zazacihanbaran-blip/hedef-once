@@ -1,0 +1,65 @@
+# Hedef Önce — gerçek veri başlangıcı
+
+Bu sürüm, seçilen **Karar Odaklı** arayüzü API anahtarı istemeyen gerçek piyasa veri toplayıcısına bağlar. Emir göndermez ve henüz işlem skoru üretmez.
+
+## Çalıştırma
+
+Node.js 20 veya üzeri gerekir. Ek paket kurulmaz.
+
+```powershell
+cd C:\Users\USER\Documents\Codex\2026-10-08\referenced-chatgpt-conversation-this-is-an\outputs\hedef-once-app
+npm start
+```
+
+Ardından `http://127.0.0.1:4173` adresi açılır. Program açık kaldığı sürece veri yaklaşık dakikada bir yenilenir.
+
+Tek sefer veri toplamak için:
+
+```powershell
+npm run collect
+```
+
+Doğrulamalar:
+
+```powershell
+npm test
+```
+
+## Şu anda alınan gerçek veriler
+
+- Ana hisseler: MU, SNDK
+- Memory: WDC, STX
+- Semiconductor ve ekipman: NVDA, AMD, AVGO, AMAT, LRCX, ASML
+- ETF ve piyasa: SMH, SOXX, QQQ, SPY
+- Makro proxy'leri: VIX, ABD 10 yıllık, DXY, Nasdaq ve S&P vadeli işlemleri
+- Bir dakikalık fiyat/hacim barları, extended-hours dahil
+- MU/SNDK gerçek zamanlı bid, ask, büyüklük ve spread
+- MU/SNDK ve memory teması için canlı haber RSS akışı
+- MU/SNDK resmi SEC bildirimleri ve kabul zamanları
+- Önümüzdeki sekiz günlük ABD ekonomik takvimi
+- Önümüzdeki sekiz günlük MU/SNDK bilanço takvimi kontrolü
+
+Kaynak profili `NO_KEY_PUBLIC_RESEARCH` olarak işaretlenir. Bu bağlantı anahtarsız ve garanti edilmeyen kamu erişimine dayanır. Veri gecikmesi ve başarısız semboller arayüzde görünür tutulur.
+
+## Point-in-time kayıt
+
+- `data/bars/*.ndjson`: normalize edilmiş bar kayıtları
+- `data/snapshots/YYYY-MM-DD.ndjson`: her toplama anındaki piyasa görünümü
+- `data/latest.json`: arayüzün kullandığı son snapshot
+- `data/context/*.ndjson`: haber, SEC ve takvim snapshot'ları
+- `data/latest-context.json`: son bağlam snapshot'ı
+- `data/state.json`: yinelenen barları engelleyen kolektör durumu
+
+İlk çalıştırmada geçmişten indirilen barlar `BACKFILL_OBSERVED_NOW` olarak işaretlenir. Bunlar o geçmiş tarihte sisteme gerçekten ulaşmış point-in-time kayıt sayılmaz. Program çalışırken yeni gözlenen barlar `OBSERVED_LIVE` olarak kaydedilir.
+
+## Neden skor kapalı?
+
+Fiyat katmanı tek başına Memory Momentum Long Engine v0.1'i temsil etmez. Şu katmanlar tamamlanana kadar ekran işlem puanı veya hedef-önce-stop olasılığı üretmez:
+
+- tarihsel olarak lisanslı haber arşivi ve revizyon geçmişi
+- dondurulmuş haber/olay risk sınıflandırması
+- doğrulanmış uygulanabilir fill ve slippage modeli
+- dondurulmuş skor ve veto kuralları
+- walk-forward ile kalibrasyon
+
+Bu sınır arayüzde “Eksik veri katmanları” olarak gösterilir.
