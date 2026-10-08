@@ -49,6 +49,16 @@
         </div>
       </section>
 
+      <section class="guidance-panel wait" id="guidancePanel" aria-labelledby="guidanceTitle">
+        <div class="guidance-icon" aria-hidden="true">→</div>
+        <div>
+          <span>Şimdi ne yapmalıyım?</span>
+          <h2 id="guidanceTitle">Verinin tamamlanmasını bekle</h2>
+          <p id="guidanceSummary">Sistem karar hazırlıyor; şu anda işlem açma.</p>
+          <ul id="guidanceWaitFor"><li>Canlı veri ve karar motoru bekleniyor.</li></ul>
+        </div>
+      </section>
+
       <section class="price-path" aria-label="İşlem planı">
         <div class="path-point"><span>1</span><small>Giriş bölgesi</small><strong id="entryValue">Skor sonrası</strong></div>
         <div class="path-line"></div>
@@ -61,16 +71,16 @@
         <section class="panel">
           <div class="panel-heading"><div><h2>Gerçek piyasa görünümü</h2><p id="quoteSubtitle">MU için son erişilebilir veri</p></div><span class="source-tag">PUBLIC DATA</span></div>
           <div class="metric-list">
-            <div><span>Günlük hareket</span><strong id="metricChange">—</strong></div>
-            <div><span>Seans VWAP</span><strong id="metricVwap">—</strong></div>
-            <div><span>Seans yüksek / düşük</span><strong id="metricRange">—</strong></div>
-            <div><span>Seans hacmi</span><strong id="metricVolume">—</strong></div>
-            <div><span>Bid / ask</span><strong id="metricBidAsk">—</strong></div>
-            <div><span>Spread</span><strong id="metricSpread">—</strong></div>
-            <div><span>Fikrin bozulduğu seviye</span><strong id="stopValue">—</strong></div>
-            <div><span>Maliyet sonrası hedef</span><strong id="netTargetValue">—</strong></div>
-            <div><span>Memory grubu</span><strong id="memoryState">—</strong></div>
-            <div><span>Semiconductor ETF'leri</span><strong id="sectorState">—</strong></div>
+            <div><span>Günlük hareket<small id="metricChangeMeaning">Hissenin bugünkü yönü.</small></span><strong id="metricChange">—</strong></div>
+            <div><span>Seans VWAP<small id="metricVwapMeaning">Gün içindeki ortalama maliyet seviyesi.</small></span><strong id="metricVwap">—</strong></div>
+            <div><span>Seans yüksek / düşük<small id="metricRangeMeaning">Fiyatın bugün dolaştığı alan.</small></span><strong id="metricRange">—</strong></div>
+            <div><span>Seans hacmi<small id="metricVolumeMeaning">Bugünkü toplam işlem miktarı.</small></span><strong id="metricVolume">—</strong></div>
+            <div><span>Bid / ask<small id="metricBidAskMeaning">Alıcının verdiği / satıcının istediği fiyat.</small></span><strong id="metricBidAsk">—</strong></div>
+            <div><span>Spread<small id="metricSpreadMeaning">Alış ile satış arasındaki giriş maliyeti.</small></span><strong id="metricSpread">—</strong></div>
+            <div><span>Fikrin bozulduğu seviye<small id="stopMeaning">Bu seviyenin altı işlem fikrini bozar.</small></span><strong id="stopValue">—</strong></div>
+            <div><span>Maliyet sonrası hedef<small id="netTargetMeaning">Ücret ve kayma stresi çıktıktan sonra kalan hareket.</small></span><strong id="netTargetValue">—</strong></div>
+            <div><span>Memory grubu<small id="memoryMeaning">Benzer depolama hisselerinin desteği.</small></span><strong id="memoryState">—</strong></div>
+            <div><span>Semiconductor ETF'leri<small id="sectorMeaning">Çip sektörünün genel desteği.</small></span><strong id="sectorState">—</strong></div>
           </div>
         </section>
 

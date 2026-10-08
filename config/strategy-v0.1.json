@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1-research",
+  "version": "0.1.2-research",
   "mode": "RESEARCH_ONLY",
   "barSeconds": 300,
   "researchNotionalUsd": 5000,

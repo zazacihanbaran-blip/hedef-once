@@ -3,6 +3,8 @@
 Bu sürüm, seçilen **Karar Odaklı** arayüzü API anahtarı istemeyen gerçek piyasa veri toplayıcısına bağlar. Emir göndermez; canlı araştırma skoru üretir.
 Canlı prediction motoru sabit kurallı araştırma skoru üretir; walk-forward kalibrasyonu tamamlanana kadar kazanma olasılığı üretmez ve bütün adayları paper araştırmasıyla sınırlar.
 
+Arayüzde her teknik verinin yanında günlük Türkçe karşılığı bulunur. Üstteki **“Şimdi ne yapmalıyım?”** kartı kararı `İşlem açma`, `Şimdilik bekle` veya `Sadece paper takip et` olarak söyler ve değişmesi beklenen şartları listeler. Bu metinler sinyal kaydına da yazıldığı için ileride aynı açıklamalar bildirimlerde kullanılabilir.
+
 ## Çalıştırma
 
 Node.js 20 veya üzeri gerekir. Ek paket kurulmaz.

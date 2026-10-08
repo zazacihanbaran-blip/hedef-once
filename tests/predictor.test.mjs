@@ -68,4 +68,6 @@ test("canlı araştırma motoru olasılık uydurmaz", async () => {
   assert.equal(predictions.candidates.length, 4);
   assert.ok(predictions.candidates.every((candidate) => candidate.pTargetFirst === null));
   assert.ok(predictions.candidates.every((candidate) => candidate.mode === "RESEARCH_ONLY"));
+  assert.ok(predictions.candidates.every((candidate) => candidate.userGuidance?.action));
+  assert.ok(predictions.candidates.every((candidate) => Array.isArray(candidate.userGuidance?.waitFor)));
 });
