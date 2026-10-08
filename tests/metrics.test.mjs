@@ -43,6 +43,12 @@ test("eksik zorunlu seri skoru açmaz", () => {
   assert.deepEqual(result.missingMarketSymbols, ["SNDK"]);
 });
 
+test("zorunlu fiyat serileri tamamsa piyasa skoru açılır", () => {
+  const result = buildDataReadiness({ MU: { qualityStatus: "VALID" }, SNDK: { qualityStatus: "VALID" } }, [], ["MU", "SNDK"]);
+  assert.equal(result.status, "MARKET_LAYER_READY");
+  assert.equal(result.scoringAllowed, true);
+});
+
 test("Nasdaq para ve yüzde alanları güvenli sayıya dönüşür", () => {
   assert.equal(parseMarketNumber("$1,063.71"), 1063.71);
   assert.equal(parseMarketNumber("-2.22%"), -2.22);
