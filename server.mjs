@@ -8,6 +8,7 @@ import { collectContextSnapshot } from "./lib/context.mjs";
 import { generatePredictions } from "./lib/predictor.mjs";
 import { labelMaturedSignals } from "./lib/labeler.mjs";
 import { buildForwardBacktestReport } from "./lib/backtest.mjs";
+import { getReplayAvailability, runPointInTimeReplay } from "./lib/replay.mjs";
 import { PointInTimeStore } from "./lib/store.mjs";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -94,6 +95,17 @@ function sendJson(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
+async function readJsonBody(request) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > 32_768) throw new Error("İstek çok büyük.");
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+}
+
 async function serveStatic(requestPath, response) {
   const relative = requestPath === "/" ? "index.html" : requestPath.slice(1);
   const resolved = path.resolve(publicDir, relative);
@@ -133,6 +145,20 @@ const server = createServer(async (request, response) => {
       return;
     }
     sendJson(response, 200, { ...latest, context: latestContext, predictions: latestPredictions, backtest: latestBacktest });
+    return;
+  }
+  if (url.pathname === "/api/replay/availability") {
+    try { sendJson(response, 200, await getReplayAvailability(dataDir)); }
+    catch (error) { sendJson(response, 500, { error: error.message }); }
+    return;
+  }
+  if (url.pathname === "/api/replay" && request.method === "POST") {
+    try {
+      const input = await readJsonBody(request);
+      sendJson(response, 200, await runPointInTimeReplay(dataDir, strategy, input));
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
     return;
   }
   if (url.pathname === "/api/collect" && request.method === "POST") {

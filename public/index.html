@@ -184,6 +184,25 @@
         </div>
       </details>
 
+      <section class="replay-panel">
+        <div class="panel-heading"><div><h2>Zaman Makinesi</h2><p>Modeli seçtiğin tarih aralığında, yalnızca o anda bilinen verilerle yeniden çalıştır</p></div><span id="replayAvailability">Uygun aralık yükleniyor</span></div>
+        <div class="replay-controls">
+          <label><span>Başlangıç</span><input id="replayStart" type="datetime-local" step="1"></label>
+          <label><span>Bitiş</span><input id="replayEnd" type="datetime-local" step="1"></label>
+          <button id="replayButton" type="button">Tarafsız testi çalıştır</button>
+        </div>
+        <p class="replay-explain" id="replayExplain">Fiyat, bid/ask, sektör, makro, haber, SEC ve takvim katmanlarının birlikte kaydedildiği zamanlar kullanılabilir.</p>
+        <div class="replay-summary" id="replaySummary" hidden>
+          <article><span>Tam 5 dk karar anı</span><strong id="replayFullMoments">—</strong></article>
+          <article><span>Tekil karar</span><strong id="replayCandidates">—</strong></article>
+          <article><span>Bağımsız “şimdi”</span><strong id="replayIndependent">—</strong></article>
+          <article><span>Hedef önce</span><strong id="replayTargetRate">—</strong></article>
+          <article><span>Net ortalama</span><strong id="replayNetReturn">—</strong></article>
+        </div>
+        <div class="replay-diagnostics" id="replayDiagnostics"></div>
+        <div class="replay-results" id="replayResults"></div>
+      </section>
+
       <section class="backtest-panel">
         <div class="panel-heading"><div><h2>Tarafsız backtest sayacı</h2><p>Yalnızca bu sürümden sonra canlı görülmüş veriler sayılır</p></div><span id="backtestStatus">Başlatılıyor</span></div>
         <div class="backtest-grid">

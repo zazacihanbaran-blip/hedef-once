@@ -52,6 +52,14 @@ Dondurulmuş güncel sürümün ileri test sayacını ve geçerli örneklerini g
 npm run backtest
 ```
 
+Zaman Makinesi replay hattında gelecek veri sızıntısı, tekil karar kimliği, skor toplamı ve sonuç zamanını denetlemek için:
+
+```powershell
+npm run audit:replay
+```
+
+Arayüzdeki **Zaman Makinesi** bölümünde başlangıç ve bitiş zamanı seçilir. Sistem yalnızca fiyat, bid/ask, sektör, makro, haber, SEC ve takvim katmanlarının o anda birlikte kaydedildiği aralığı açar. Toplama başlamadan önceki tarihler için tam veri varmış gibi sonuç üretmez.
+
 Arayüzdeki **Puanın hesabını aç** bölümü aynı denetim izini kullanıcı dilinde gösterir. Formülün doğru hesaplanması ile formülün geleceği iyi tahmin etmesi ayrı durumlar olarak işaretlenir.
 
 ## Şu anda alınan gerçek veriler

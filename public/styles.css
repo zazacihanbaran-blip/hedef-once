@@ -200,6 +200,20 @@ main { max-width: 1000px; margin: 0 auto; padding: 24px 28px 96px; }
 .quote-card small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
 .action-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
 .backtest-panel { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+.replay-panel { margin-top: 16px; background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line)); border-radius: 18px; padding: 18px; }
+.replay-controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-top: 14px; align-items: end; }
+.replay-controls label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; }
+.replay-controls input { min-height: 42px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-2); color: var(--text); padding: 0 11px; color-scheme: dark; }
+.replay-controls button { min-height: 42px; border: 1px solid var(--accent); border-radius: 11px; background: var(--accent); color: white; padding: 0 16px; font-weight: 650; }
+.replay-controls button:disabled { opacity: .55; }
+.replay-explain, .replay-diagnostics { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.replay-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 14px; }
+.replay-summary article { background: var(--panel-2); border-radius: 12px; padding: 12px; }
+.replay-summary span { color: var(--muted); font-size: 9px; }
+.replay-summary strong { display: block; margin-top: 7px; font-size: 16px; }
+.replay-results { display: grid; gap: 1px; margin-top: 12px; overflow-x: auto; }
+.replay-result { display: grid; grid-template-columns: 1.4fr 1fr .8fr .6fr .8fr .7fr; gap: 10px; min-width: 720px; background: var(--panel-2); padding: 10px 12px; font-size: 10px; }
+.replay-result-head { color: var(--muted); background: transparent; font-size: 9px; }
 .backtest-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
 .backtest-grid article { background: var(--panel-2); border-radius: 13px; padding: 13px; }
 .backtest-grid span, .backtest-grid small { display: block; color: var(--muted); font-size: 10px; }
@@ -230,6 +244,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 24px 28px 96px; }
   .quote-grid { grid-template-columns: repeat(3, 1fr); }
   .score-grid { grid-template-columns: repeat(2, 1fr); }
   .backtest-grid { grid-template-columns: repeat(2, 1fr); }
+  .replay-controls { grid-template-columns: 1fr; }
+  .replay-summary { grid-template-columns: repeat(2, 1fr); }
   .cycle-rail { grid-template-columns: repeat(4, 1fr); }
   .cycle-rail > div::after { display: none; }
   .cycle-explain-grid, .engine-principles, .correctness-grid { grid-template-columns: 1fr; }

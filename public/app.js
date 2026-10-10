@@ -18,7 +18,9 @@ const elements = Object.fromEntries([
   "timingStatus", "riskStatus", "cycleNumber", "cyclePhaseSummary", "cycleRail", "cycleEvidence",
   "cycleNext", "cycleInvalidation", "motorEvidence", "scoreAuditList", "dataCorrectness",
   "calculationCorrectness", "predictionCorrectness", "backtestStatus", "backtestDays", "backtestLabels",
-  "backtestActionable", "backtestExcluded", "backtestNote"
+  "backtestActionable", "backtestExcluded", "backtestNote", "replayAvailability", "replayStart", "replayEnd",
+  "replayButton", "replayExplain", "replaySummary", "replayFullMoments", "replayCandidates", "replayIndependent",
+  "replayTargetRate", "replayNetReturn", "replayDiagnostics", "replayResults"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -309,6 +311,108 @@ function renderBacktest(backtest) {
   elements.backtestNote.textContent = `${backtest.note} Aktif sürüm: ${backtest.engineVersion}`;
 }
 
+function localInputValue(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
+}
+
+function replayOutcomeLabel(result) {
+  if (result.status === "PENDING") return "Sonuç bekliyor";
+  if (result.status === "EXCLUDED") return "Test dışı";
+  return ({ TARGET_FIRST: "Hedef önce", STOP_FIRST: "Stop önce", TIMEOUT: "Süre doldu" })[result.outcome] ?? "—";
+}
+
+async function loadReplayAvailability() {
+  try {
+    const response = await fetch("/api/replay/availability");
+    const availability = await response.json();
+    if (!response.ok) throw new Error(availability.error);
+    if (!availability.fullPitStart) {
+      elements.replayAvailability.textContent = "Henüz tam katmanlı aralık yok";
+      elements.replayButton.disabled = true;
+      return;
+    }
+    elements.replayAvailability.textContent = `${new Date(availability.fullPitStart).toLocaleString("tr-TR")} → ${new Date(availability.fullPitEnd).toLocaleString("tr-TR")}`;
+    elements.replayStart.min = localInputValue(availability.fullPitStart);
+    elements.replayStart.max = localInputValue(availability.fullPitEnd);
+    elements.replayEnd.min = localInputValue(availability.fullPitStart);
+    elements.replayEnd.max = localInputValue(availability.fullPitEnd);
+    elements.replayStart.value = localInputValue(availability.fullPitStart);
+    elements.replayEnd.value = localInputValue(availability.fullPitEnd);
+    elements.replayExplain.textContent = availability.notice;
+  } catch (error) {
+    elements.replayAvailability.textContent = "Aralık alınamadı";
+    elements.replayExplain.textContent = error.message;
+  }
+}
+
+function renderReplay(report) {
+  elements.replaySummary.hidden = false;
+  elements.replayFullMoments.textContent = report.diagnostics.fullPointInTimeSnapshots.toLocaleString("tr-TR");
+  elements.replayCandidates.textContent = report.candidates.toLocaleString("tr-TR");
+  elements.replayIndependent.textContent = report.summary.independentSignals.toLocaleString("tr-TR");
+  elements.replayTargetRate.textContent = Number.isFinite(report.summary.targetFirstRate) ? formatPercent(report.summary.targetFirstRate * 100) : "Henüz yok";
+  elements.replayNetReturn.textContent = Number.isFinite(report.summary.averageNetReturn) ? formatPercent(report.summary.averageNetReturn * 100) : "Henüz yok";
+  const exclusions = Object.entries(report.diagnostics.excludedByReason);
+  const passedChecks = report.integrityChecks.filter((check) => check.passed).length;
+  const exclusionText = exclusions.length
+    ? `Dışarıda tutulan anlar: ${exclusions.map(([reason, count]) => `${reason} ${count}`).join(" · ")}`
+    : "Seçilen aralıktaki bütün anlar point-in-time kontrollerinden geçti.";
+  elements.replayDiagnostics.textContent = `${passedChecks}/${report.integrityChecks.length} bütünlük kontrolü geçti. ${exclusionText}`;
+  elements.replayResults.replaceChildren();
+  const rows = report.rows.filter((row) => row.signalWindow === "NOW" || row.result.status === "MATURED").slice(-100);
+  if (!rows.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = report.candidates ? "Kararlar üretildi fakat bu aralıkta olgunlaşmış veya ‘şimdi’ durumunda bir örnek yok." : "Bu aralıkta tam verili bir karar üretilemedi.";
+    elements.replayResults.append(empty);
+    return;
+  }
+  const header = document.createElement("div");
+  header.className = "replay-result replay-result-head";
+  for (const label of ["Karar zamanı", "Hisse / model", "Pencere", "Skor", "Sonuç", "Net sonuç"]) {
+    const cell = document.createElement("span"); cell.textContent = label; header.append(cell);
+  }
+  elements.replayResults.append(header);
+  for (const row of rows) {
+    const item = document.createElement("div");
+    item.className = "replay-result";
+    const values = [
+      new Date(row.entryAt).toLocaleString("tr-TR"), `${row.symbol} · ${row.modelLabel}`,
+      ({ NOW: "Şimdi", PREPARE: "Hazırlanıyor", WAIT: "Bekle", BLOCKED: "Engelli" })[row.signalWindow] ?? row.signalWindow,
+      `${row.decisionScore}/100`, replayOutcomeLabel(row.result),
+      Number.isFinite(row.result.netReturn) ? formatPercent(row.result.netReturn * 100) : "—"
+    ];
+    for (const value of values) { const cell = document.createElement("span"); cell.textContent = value; item.append(cell); }
+    elements.replayResults.append(item);
+  }
+}
+
+async function runReplay() {
+  if (!elements.replayStart.value || !elements.replayEnd.value) return;
+  elements.replayButton.disabled = true;
+  elements.replayButton.textContent = "Test çalışıyor…";
+  elements.replayDiagnostics.textContent = "Her karar anının veri katmanları ve gelecekten bilgi sızıntısı kontrol ediliyor.";
+  try {
+    const response = await fetch("/api/replay", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        startAt: new Date(elements.replayStart.value).toISOString(),
+        endAt: new Date(new Date(elements.replayEnd.value).getTime() + 999).toISOString()
+      })
+    });
+    const report = await response.json();
+    if (!response.ok) throw new Error(report.error);
+    renderReplay(report);
+  } catch (error) {
+    elements.replayDiagnostics.textContent = error.message;
+  } finally {
+    elements.replayButton.disabled = false;
+    elements.replayButton.textContent = "Tarafsız testi çalıştır";
+  }
+}
+
 function renderContext(context) {
   const connected = context?.readiness ?? {};
   layerState(elements.newsLayer, connected.newsConnected && connected.filingsConnected);
@@ -494,6 +598,7 @@ document.addEventListener("click", (event) => {
 });
 
 elements.refreshButton.addEventListener("click", () => loadSnapshot(true));
+elements.replayButton.addEventListener("click", runReplay);
 renderSelection();
-await loadSnapshot();
+await Promise.all([loadSnapshot(), loadReplayAvailability()]);
 setInterval(() => loadSnapshot(), 60_000);
