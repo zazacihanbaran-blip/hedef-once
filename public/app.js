@@ -17,7 +17,8 @@ const elements = Object.fromEntries([
   "metricSpreadMeaning", "stopMeaning", "netTargetMeaning", "memoryMeaning", "sectorMeaning",
   "timingStatus", "riskStatus", "cycleNumber", "cyclePhaseSummary", "cycleRail", "cycleEvidence",
   "cycleNext", "cycleInvalidation", "motorEvidence", "scoreAuditList", "dataCorrectness",
-  "calculationCorrectness", "predictionCorrectness"
+  "calculationCorrectness", "predictionCorrectness", "backtestStatus", "backtestDays", "backtestLabels",
+  "backtestActionable", "backtestExcluded", "backtestNote"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -54,6 +55,8 @@ const vetoLabels = {
   INSUFFICIENT_HISTORY: "Yeterli 5 dk geçmişi yok",
   STALE_OR_MISSING_QUOTE: "Bid/ask eksik veya eski",
   OUTSIDE_REGULAR_SESSION: "Normal seans dışında",
+  DELAYED_DECISION_CAPTURE: "Karar fiyatı geç yakalandı",
+  TOO_LATE_FOR_TARGET_WINDOW: "Hedef için yeterli seans süresi kalmadı",
   OPEN_CHAOS_WINDOW: "Açılışın ilk 10 dakikası",
   SPREAD_TOO_WIDE: "Spread fazla geniş",
   INVALID_STOP: "Geçerli stop kurulamadı",
@@ -295,6 +298,17 @@ function renderPrediction(predictions) {
   }));
 }
 
+function renderBacktest(backtest) {
+  if (!backtest) return;
+  elements.backtestStatus.textContent = backtest.plainStatus;
+  elements.backtestStatus.className = backtest.status === "READY_FOR_LOCKED_TEST" ? "positive" : "warning-text";
+  elements.backtestDays.textContent = `${backtest.gate.forwardTradingDays.current} / ${backtest.gate.forwardTradingDays.required}`;
+  elements.backtestLabels.textContent = `${backtest.gate.maturedValidLabels.current} / ${backtest.gate.maturedValidLabels.required}`;
+  elements.backtestActionable.textContent = `${backtest.gate.maturedActionableLabels.current} / ${backtest.gate.maturedActionableLabels.required}`;
+  elements.backtestExcluded.textContent = `${backtest.current.excludedSignals + backtest.legacy.invalidLabelsExcluded}`;
+  elements.backtestNote.textContent = `${backtest.note} Aktif sürüm: ${backtest.engineVersion}`;
+}
+
 function renderContext(context) {
   const connected = context?.readiness ?? {};
   layerState(elements.newsLayer, connected.newsConnected && connected.filingsConnected);
@@ -440,6 +454,7 @@ function render() {
   renderQuoteGrid(snapshot);
   renderContext(snapshot.context);
   renderPrediction(snapshot.predictions);
+  renderBacktest(snapshot.backtest);
   const selectedCandidate = snapshot.predictions?.candidates?.find((item) => item.symbol === state.symbol && item.modelKey === state.model);
   elements.stopMeaning.textContent = Number.isFinite(selectedCandidate?.stopPrice)
     ? "Fiyat buranın altına inerse işlem fikri geçersiz sayılır."

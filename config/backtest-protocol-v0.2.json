@@ -1,0 +1,58 @@
+{
+  "name": "Forward Only v0.2",
+  "engineVersion": "0.2.1-forward-baseline",
+  "startedAt": "2026-10-10T00:00:00+03:00",
+  "universe": ["MU", "SNDK"],
+  "models": ["quick", "extended"],
+  "outcomes": ["TARGET_FIRST", "STOP_FIRST", "TIMEOUT"],
+  "pointInTimeOnly": true,
+  "sameBarPolicy": "STOP_FIRST",
+  "timeArchitecture": {
+    "featureBars": "COMPLETED_5_MINUTE_ONLY_REQUIRING_ALL_FIVE_1_MINUTE_BARS",
+    "entry": "FIRST_CAPTURE_WITHIN_90_SECONDS_AFTER_FEATURE_BAR_CLOSE",
+    "outcomePath": "OBSERVED_LIVE_1_MINUTE_BARS",
+    "quick": "ENTRY_SESSION_CLOSE_WITH_AT_LEAST_60_MINUTES_REMAINING",
+    "extended": "THIRD_REGULAR_SESSION_CLOSE_WITH_AT_LEAST_30_MINUTES_REMAINING"
+  },
+  "sampling": {
+    "candidateFrequency": "ONE_PER_SYMBOL_MODEL_COMPLETED_5_MINUTE_BAR",
+    "primaryActionableMetric": "NON_OVERLAPPING_SIGNALS_ONLY",
+    "overlapRule": "A_NEW_SIGNAL_FOR_THE_SAME_SYMBOL_AND_MODEL_IS_IGNORED_UNTIL_THE_PRIOR_SIGNAL_HAS_AN_OUTCOME"
+  },
+  "resultsVisibility": "HIDDEN_UNTIL_MINIMUM_GATE",
+  "minimumGate": {
+    "forwardTradingDays": 60,
+    "maturedValidLabels": 1000,
+    "maturedActionableLabels": 100,
+    "perModelLabels": 300
+  },
+  "splitAfterGate": {
+    "developmentDaysPct": 60,
+    "validationDaysPct": 20,
+    "lockedTestDaysPct": 20,
+    "embargoSessionsBetweenSplits": 3
+  },
+  "antiOverfit": {
+    "randomShuffle": false,
+    "weightsFrozenDuringCollection": true,
+    "thresholdsFrozenDuringCollection": true,
+    "lockedTestMayBeOpenedOnce": true,
+    "primaryUncertaintyUnit": "TRADING_DAY",
+    "multipleComparisons": "ALL_CHALLENGERS_MUST_BE_REGISTERED_BEFORE_LOCKED_TEST",
+    "promotionRule": "A_CHALLENGER_MUST_IMPROVE_VALIDATION_AND_LOCKED_TEST_AFTER_COSTS_WITHOUT_WORSE_STOP_FIRST_RATE"
+  },
+  "registeredAnalyses": [
+    "BASELINE_FROZEN_WEIGHTS",
+    "ONE_GROUP_REMOVED_AT_A_TIME_ABLATION",
+    "EQUAL_WEIGHT_CHALLENGER",
+    "TIMING_TARGETSTOP_EXECUTION_ONLY_CHALLENGER",
+    "RESULTS_BY_SYMBOL_MODEL_TIME_BLOCK_AND_VOLATILITY_REGIME"
+  ],
+  "exclusions": [
+    "OTHER_ENGINE_VERSIONS",
+    "NON_REGULAR_SESSION",
+    "INVALID_QUOTE",
+    "INVALID_SIGNAL_GEOMETRY",
+    "NON_POINT_IN_TIME_BARS"
+  ]
+}

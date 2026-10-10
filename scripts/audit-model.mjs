@@ -6,13 +6,14 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "config", "strategy-v0.1.json"), "utf8"));
 const predictions = JSON.parse(await readFile(path.join(root, "data", "latest-predictions.json"), "utf8"));
 const checks = [];
+const currentCandidates = (predictions.candidates ?? []).filter((candidate) => candidate.engineVersion === config.version);
 
 function check(candidate, name, passed, actual, expected) {
   checks.push({ candidate: `${candidate.symbol}/${candidate.modelKey}`, name, passed: Boolean(passed), actual, expected });
 }
 
 const weightTotal = Object.values(config.weights).reduce((sum, weight) => sum + weight, 0);
-for (const candidate of predictions.candidates ?? []) {
+for (const candidate of currentCandidates) {
   const auditGroups = candidate.scoreAudit ?? {};
   const recalculated = Object.entries(config.weights).reduce((sum, [key, weight]) => sum + (candidate.scores?.[key] ?? 0) * weight / 100, 0);
   const auditTotal = Object.values(auditGroups).reduce((sum, group) => sum + (group.weightedContribution ?? 0), 0);
@@ -42,12 +43,12 @@ for (const candidate of predictions.candidates ?? []) {
 const failures = checks.filter((item) => !item.passed);
 const report = {
   generatedAt: new Date().toISOString(),
-  engineVersion: predictions.engineVersion,
-  candidates: predictions.candidates?.length ?? 0,
+  engineVersion: config.version,
+  candidates: currentCandidates.length,
   checks: checks.length,
   passed: checks.length - failures.length,
   failed: failures.length,
-  status: failures.length ? "FAIL" : "PASS",
+  status: failures.length ? "FAIL" : currentCandidates.length ? "PASS" : "WAITING_FOR_CURRENT_VERSION_SIGNAL",
   failures
 };
 

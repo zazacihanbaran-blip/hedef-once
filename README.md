@@ -46,6 +46,12 @@ Son prediction adaylarında veri sırası, alt puanlar, ağırlıklı toplam, ma
 npm run audit:model
 ```
 
+Dondurulmuş güncel sürümün ileri test sayacını ve geçerli örneklerini görmek için:
+
+```powershell
+npm run backtest
+```
+
 Arayüzdeki **Puanın hesabını aç** bölümü aynı denetim izini kullanıcı dilinde gösterir. Formülün doğru hesaplanması ile formülün geleceği iyi tahmin etmesi ayrı durumlar olarak işaretlenir.
 
 ## Şu anda alınan gerçek veriler
@@ -96,3 +102,9 @@ Bu sınır arayüzde “Eksik veri katmanları” olarak gösterilir.
 - Aynı mumda hedef ve stop görülürse ana sonuç konservatif olarak `STOP_FIRST` olur.
 - Kolektörün ilk çalışmasında geriye alınan barlar `BACKFILL_OBSERVED_NOW` olduğundan FULL_PIT haberli backtestte kullanılamaz.
 - Objektif canlı-forward veri seti, kolektörün çalışmaya başladığı andan itibaren birikir.
+- Özellikler yalnızca beş eksiksiz 1 dakikalık bardan oluşan kapanmış 5 dakikalık mumlarla hesaplanır; hedef/stop sırası canlı gözlenmiş 1 dakikalık mumlarla çözülür.
+- Quick modelde giriş için seans kapanışına en az 60 dakika, Extended modelde en az 30 dakika kalmalıdır. Extended sonuç üçüncü normal seansın kapanışında olgunlaşır.
+- Aynı sembol ve modelde önceki paper sinyal sonuçlanmadan gelen çakışan “şimdi” sinyalleri ana performans hesabında tekrar sayılmaz.
+- Günler kronolojik %60 geliştirme, %20 doğrulama ve %20 kilitli test olarak ayrılır; bölümler arasında üç seanslık embargo bırakılır ve rastgele karıştırma yapılmaz.
+- Başarı oranı 60 işlem günü, 1.000 geçerli sonuç, her modelde 300 sonuç ve 100 çakışmayan gerçek karar anı tamamlanmadan gösterilmez.
+- Güncel ağırlıklar doğrulanmış olasılıklar değil, veri birikirken değiştirilmeyen başlangıç hipotezleridir.

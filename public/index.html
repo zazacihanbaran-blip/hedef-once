@@ -177,8 +177,23 @@
             <strong>Henüz söylemediğimiz şey</strong>
             <p>Skor kazanma olasılığı değildir. `Hedef önce`, `stop önce` ve `süre doldu` sonuçları yeterli forward örnek birikmeden yüzde olarak gösterilmez.</p>
           </div>
+          <div class="model-boundary">
+            <strong>Ağırlıkların şu anki durumu</strong>
+            <p>%35, %20 gibi ağırlıklar dondurulmuş başlangıç hipotezidir. Katman ölçekleri, birbiriyle ilişkili girdiler ve hem puanda hem engelde sayılan ölçüler forward testte ayrı ayrı sınanacaktır; şimdilik “doğru olasılık” anlamına gelmez.</p>
+          </div>
         </div>
       </details>
+
+      <section class="backtest-panel">
+        <div class="panel-heading"><div><h2>Tarafsız backtest sayacı</h2><p>Yalnızca bu sürümden sonra canlı görülmüş veriler sayılır</p></div><span id="backtestStatus">Başlatılıyor</span></div>
+        <div class="backtest-grid">
+          <article><span>İleri test günü</span><strong id="backtestDays">0 / 60</strong><small>Farklı ABD işlem günleri</small></article>
+          <article><span>Olgunlaşmış sonuç</span><strong id="backtestLabels">0 / 1000</strong><small>Hedef, stop veya süre sonu belli</small></article>
+          <article><span>Gerçek karar anı</span><strong id="backtestActionable">0 / 100</strong><small>Çakışmayan “şimdi” örnekleri</small></article>
+          <article><span>Geçersiz kayıt</span><strong id="backtestExcluded">0</strong><small>Sonuca katılmadan ayrı tutulur</small></article>
+        </div>
+        <p class="backtest-note" id="backtestNote">Sonuç oranları asgari örnek tamamlanana kadar gizli tutulur.</p>
+      </section>
 
       <section class="watchlist-panel">
         <div class="panel-heading"><div><h2>İzlenen piyasa</h2><p>Memory, sektör ve makro sepetinin son erişilebilir değerleri</p></div><span id="observedAt">Son toplama: —</span></div>

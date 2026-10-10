@@ -199,6 +199,12 @@ main { max-width: 1000px; margin: 0 auto; padding: 24px 28px 96px; }
 .quote-card strong { display: block; font-size: 14px; font-weight: 600; margin-top: 8px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; }
 .quote-card small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
 .action-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+.backtest-panel { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+.backtest-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.backtest-grid article { background: var(--panel-2); border-radius: 13px; padding: 13px; }
+.backtest-grid span, .backtest-grid small { display: block; color: var(--muted); font-size: 10px; }
+.backtest-grid strong { display: block; margin: 7px 0 4px; font-size: 18px; font-variant-numeric: tabular-nums; }
+.backtest-note { color: var(--muted); font-size: 10px; line-height: 1.5; margin: 12px 2px 0; }
 .action-row button { min-height: 42px; border-radius: 12px; padding: 0 16px; font-weight: 600; }
 .primary { border: 1px solid var(--accent); background: var(--accent); color: white; }
 .secondary { border: 1px solid var(--line); background: var(--panel); }
@@ -223,6 +229,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 24px 28px 96px; }
   .context-grid { grid-template-columns: 1fr; }
   .quote-grid { grid-template-columns: repeat(3, 1fr); }
   .score-grid { grid-template-columns: repeat(2, 1fr); }
+  .backtest-grid { grid-template-columns: repeat(2, 1fr); }
   .cycle-rail { grid-template-columns: repeat(4, 1fr); }
   .cycle-rail > div::after { display: none; }
   .cycle-explain-grid, .engine-principles, .correctness-grid { grid-template-columns: 1fr; }

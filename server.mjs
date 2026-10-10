@@ -7,6 +7,7 @@ import { collectMarketSnapshot } from "./lib/collector.mjs";
 import { collectContextSnapshot } from "./lib/context.mjs";
 import { generatePredictions } from "./lib/predictor.mjs";
 import { labelMaturedSignals } from "./lib/labeler.mjs";
+import { buildForwardBacktestReport } from "./lib/backtest.mjs";
 import { PointInTimeStore } from "./lib/store.mjs";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -14,11 +15,14 @@ const publicDir = path.join(rootDir, "public");
 const dataDir = path.join(rootDir, "data");
 const store = new PointInTimeStore(dataDir);
 await store.init();
+const strategy = JSON.parse(await readFile(path.join(rootDir, "config", "strategy-v0.1.json"), "utf8"));
 
 let latest = await store.loadLatest();
 let latestContext = await store.loadLatestContext();
 let latestPredictions = await store.loadLatestPredictions();
+if (latestPredictions?.engineVersion !== strategy.version) latestPredictions = null;
 let latestCharts = null;
+let latestBacktest = await buildForwardBacktestReport(dataDir, strategy.version);
 let collecting = null;
 let collectingContext = null;
 
@@ -26,6 +30,10 @@ async function refresh() {
   if (collecting) return collecting;
   collecting = collectMarketSnapshot(store)
     .then(({ snapshot, charts }) => {
+      if (!Object.keys(snapshot.quotes ?? {}).length && latest && Object.keys(latest.quotes ?? {}).length) {
+        console.warn(`[${snapshot.observedAt}] Kaynak boş döndü; son geçerli piyasa görünümü korunuyor.`);
+        return latest;
+      }
       latest = snapshot;
       latestCharts = charts;
       console.log(`[${snapshot.observedAt}] ${Object.keys(snapshot.quotes).length} piyasa serisi güncellendi.`);
@@ -42,10 +50,11 @@ async function refresh() {
 }
 
 async function refreshPredictions() {
-  if (!latest || !latestCharts) return latestPredictions;
+  if (!latest || !latestCharts?.length) return latestPredictions;
   latestPredictions = await generatePredictions(latest, latestCharts, latestContext);
   await store.savePredictions(latestPredictions);
   await labelMaturedSignals(dataDir);
+  latestBacktest = await buildForwardBacktestReport(dataDir, strategy.version);
   return latestPredictions;
 }
 
@@ -123,14 +132,14 @@ const server = createServer(async (request, response) => {
       sendJson(response, 503, { error: "Henüz piyasa verisi alınamadı." });
       return;
     }
-    sendJson(response, 200, { ...latest, context: latestContext, predictions: latestPredictions });
+    sendJson(response, 200, { ...latest, context: latestContext, predictions: latestPredictions, backtest: latestBacktest });
     return;
   }
   if (url.pathname === "/api/collect" && request.method === "POST") {
     try {
       const [market, context] = await Promise.all([refresh(), refreshContext()]);
       const predictions = await refreshPredictions();
-      sendJson(response, 200, { ...market, context, predictions });
+      sendJson(response, 200, { ...market, context, predictions, backtest: latestBacktest });
     } catch (error) {
       sendJson(response, 502, { error: error.message });
     }

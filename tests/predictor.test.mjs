@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { aggregateBars, classifyEntryTiming } from "../lib/features.mjs";
 import { evaluateTargetBeforeStop } from "../lib/evaluator.mjs";
+import { resolveDeadline, validSignalGeometry } from "../lib/labeler.mjs";
 import { generatePredictions } from "../lib/predictor.mjs";
 
 test("tamamlanmamış 5 dakikalık bar feature'a girmez", () => {
@@ -60,6 +61,34 @@ test("timeout sıfır getiri varsaymak yerine son uygulanabilir kapanışı taş
   assert.equal(result.exitPrice, 100.35);
 });
 
+test("boş hedef fiyatı başarı sayılmaz", () => {
+  const result = evaluateTargetBeforeStop({
+    entryAt: "2026-10-08T14:00:00.000Z", entryPrice: 100, targetPrice: null, stopPrice: 99.4,
+    deadlineAt: "2026-10-08T20:00:00.000Z"
+  }, [{ eventAt: "2026-10-08T14:01:00.000Z", high: 100.2, low: 99.8 }]);
+  assert.equal(result.outcome, "INVALID");
+});
+
+test("kapalı seans veya geçersiz fiyat geometrisi backteste girmez", () => {
+  assert.equal(validSignalGeometry({ entryAt: "2026-10-08T14:00:00Z", entryPrice: 100, targetPrice: 101, stopPrice: 99, dataLineage: { marketState: "CLOSED", quoteQuality: "VALID" } }), false);
+  assert.equal(validSignalGeometry({ entryAt: "2026-10-08T14:00:00Z", entryPrice: 100, targetPrice: 101, stopPrice: 99, dataLineage: { marketState: "REGULAR", quoteQuality: "VALID" } }), true);
+  assert.equal(validSignalGeometry({
+    entryAt: "2026-10-08T14:00:00Z", entryPrice: 100, targetPrice: 101, stopPrice: 99,
+    dataLineage: { marketState: "REGULAR", quoteQuality: "VALID" },
+    timePolicy: { decisionDelaySeconds: 91, maximumDecisionDelaySeconds: 90, minutesToSessionClose: 100, minimumMinutesToSessionClose: 60 }
+  }), false);
+});
+
+test("geniş model üçüncü gözlenen normal seansın sonunda olgunlaşır", () => {
+  const signal = { entryAt: "2026-10-08T14:00:00Z", deadlineAt: null, deadlinePolicy: "THIRD_RTH_CLOSE", maxHoldingSessions: 3 };
+  const bars = [
+    ["2026-10-08T19:59:00Z", "2026-10-08T20:00:00Z"],
+    ["2026-10-09T19:59:00Z", "2026-10-09T20:00:00Z"],
+    ["2026-10-12T19:59:00Z", "2026-10-12T20:00:00Z"]
+  ].flat().map((eventAt) => ({ eventAt, availableAt: eventAt, availabilityBasis: "OBSERVED_LIVE", extendedHours: false }));
+  assert.equal(resolveDeadline(signal, bars, new Date("2026-10-12T21:00:00Z")), "2026-10-12T20:00:00.000Z");
+});
+
 test("canlı araştırma motoru olasılık uydurmaz", async () => {
   const observed = new Date("2026-10-08T16:00:00.000Z");
   const regularStart = Math.floor(new Date("2026-10-08T13:30:00.000Z").getTime() / 1000);
@@ -95,4 +124,6 @@ test("canlı araştırma motoru olasılık uydurmaz", async () => {
   assert.ok(predictions.candidates.every((candidate) => Object.keys(candidate.scoreAudit ?? {}).length === 8));
   assert.ok(predictions.candidates.every((candidate) => candidate.riskReward < candidate.grossRiskReward));
   assert.ok(predictions.candidates.every((candidate) => candidate.dataLineage?.pointInTimeOrderValid === true));
+  assert.ok(predictions.candidates.every((candidate) => candidate.timePolicy?.featureBarMinutes === 5));
+  assert.ok(predictions.candidates.every((candidate) => candidate.timePolicy?.outcomeBarMinutes === 1));
 });

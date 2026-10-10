@@ -9,6 +9,7 @@
     "test": "node --test",
     "audit": "node scripts/audit-data.mjs",
     "audit:model": "node scripts/audit-model.mjs",
+    "backtest": "node scripts/backtest-forward.mjs",
     "label": "node scripts/label-signals.mjs"
   },
   "engines": {

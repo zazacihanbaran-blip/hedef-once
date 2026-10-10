@@ -1,9 +1,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildForwardBacktestReport } from "../lib/backtest.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataDir = path.join(root, "data");
+const config = JSON.parse(await readFile(path.join(root, "config", "strategy-v0.1.json"), "utf8"));
 
 async function readLines(filePath) {
   try {
@@ -60,7 +62,8 @@ let maturedLabels = 0;
 for (const file of labelFiles) maturedLabels += (await readLines(path.join(dataDir, "labels", file))).length;
 
 const capturePipelineReady = liveBars > 0 && contextSnapshots > 0 && signals > 0;
-const objectiveBacktestReady = signalDays.size >= 20 && maturedLabels >= 50;
+const forwardBacktest = await buildForwardBacktestReport(dataDir, config.version);
+const objectiveBacktestReady = forwardBacktest.status === "READY_FOR_LOCKED_TEST";
 
 const audit = {
   generatedAt: new Date().toISOString(),
@@ -73,7 +76,9 @@ const audit = {
   calibratedProbabilities,
   capturePipelineReady,
   objectiveBacktestReady,
-  minimumGate: { forwardTradingDays: 20, maturedSignals: 50 },
+  activeEngineVersion: config.version,
+  forwardBacktest,
+  minimumGate: { forwardTradingDays: 60, maturedSignals: 1000, actionableSignals: 100, perModelSignals: 300 },
   caveat: "Veri yakalama hattının çalışması performans kanıtı değildir. FULL_PIT backtest yalnızca kolektör başladıktan sonra canlı gözlenen veri aralığında iddia edilebilir; ilk indirmedeki geçmiş barlar geçmiş haber bilgisiyle birleştirilemez."
 };
 

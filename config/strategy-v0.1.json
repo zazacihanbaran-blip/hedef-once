@@ -1,7 +1,9 @@
 {
-  "version": "0.1.5-score-audit-research",
+  "version": "0.2.1-forward-baseline",
   "mode": "RESEARCH_ONLY",
   "barSeconds": 300,
+  "outcomeBarSeconds": 60,
+  "entryCaptureMaxDelaySeconds": 90,
   "researchNotionalUsd": 5000,
   "feeCasesUsd": [1.5, 3],
   "slippageStressBpsPerSide": 5,
@@ -24,6 +26,7 @@
       "minStopPct": 0.0045,
       "maxStopPct": 0.0085,
       "minRiskReward": 1.2,
+      "minimumMinutesToSessionClose": 60,
       "maxHoldingSessions": 1
     },
     "extended": {
@@ -32,6 +35,7 @@
       "minStopPct": 0.0065,
       "maxStopPct": 0.0115,
       "minRiskReward": 1.3,
+      "minimumMinutesToSessionClose": 30,
       "maxHoldingSessions": 3
     }
   }
