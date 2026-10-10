@@ -40,6 +40,14 @@ Point-in-time veri ve sinyal birikimini denetlemek için:
 npm run audit
 ```
 
+Son prediction adaylarında veri sırası, alt puanlar, ağırlıklı toplam, maliyet sonrası risk/getiri, karar kapıları ve kalibrasyon sınırını denetlemek için:
+
+```powershell
+npm run audit:model
+```
+
+Arayüzdeki **Puanın hesabını aç** bölümü aynı denetim izini kullanıcı dilinde gösterir. Formülün doğru hesaplanması ile formülün geleceği iyi tahmin etmesi ayrı durumlar olarak işaretlenir.
+
 ## Şu anda alınan gerçek veriler
 
 - Ana hisseler: MU, SNDK

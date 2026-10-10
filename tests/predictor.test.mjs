@@ -92,4 +92,7 @@ test("canlı araştırma motoru olasılık uydurmaz", async () => {
   assert.ok(predictions.candidates.every((candidate) => candidate.cycleAnalysis?.label));
   assert.ok(predictions.candidates.every((candidate) => candidate.cycleAnalysis?.nextCondition));
   assert.ok(predictions.candidates.every((candidate) => Array.isArray(candidate.cycleAnalysis?.evidence)));
+  assert.ok(predictions.candidates.every((candidate) => Object.keys(candidate.scoreAudit ?? {}).length === 8));
+  assert.ok(predictions.candidates.every((candidate) => candidate.riskReward < candidate.grossRiskReward));
+  assert.ok(predictions.candidates.every((candidate) => candidate.dataLineage?.pointInTimeOrderValid === true));
 });

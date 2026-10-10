@@ -8,6 +8,7 @@
     "collect": "node server.mjs --collect-once",
     "test": "node --test",
     "audit": "node scripts/audit-data.mjs",
+    "audit:model": "node scripts/audit-model.mjs",
     "label": "node scripts/label-signals.mjs"
   },
   "engines": {

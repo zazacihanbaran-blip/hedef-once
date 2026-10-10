@@ -16,7 +16,8 @@ const elements = Object.fromEntries([
   "metricVwapMeaning", "metricRangeMeaning", "metricVolumeMeaning", "metricBidAskMeaning",
   "metricSpreadMeaning", "stopMeaning", "netTargetMeaning", "memoryMeaning", "sectorMeaning",
   "timingStatus", "riskStatus", "cycleNumber", "cyclePhaseSummary", "cycleRail", "cycleEvidence",
-  "cycleNext", "cycleInvalidation", "motorEvidence"
+  "cycleNext", "cycleInvalidation", "motorEvidence", "scoreAuditList", "dataCorrectness",
+  "calculationCorrectness", "predictionCorrectness"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -187,6 +188,65 @@ function renderMotorEvidence(candidate) {
   }));
 }
 
+function formatAuditInput(component) {
+  const value = component.input;
+  if (!Number.isFinite(value)) return value ?? "—";
+  if (["VWAP konumu", "Net hedef", "Stop sınırı"].includes(component.label)) return formatPercent(value * 100);
+  if (["QQQ günlük yön", "SPY günlük yön", "VIX günlük değişim", "Aşırı hareket cezası", "Göreli güç"].includes(component.label)) return `${value.toLocaleString("tr-TR", { maximumFractionDigits: 3 })}%`;
+  if (component.label === "Göreli hacim") return `${value.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}×`;
+  if (component.label === "Spread cezası") return `${value.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} bps`;
+  if (component.label.includes("hedef/stop")) return value.toLocaleString("tr-TR", { maximumFractionDigits: 3 });
+  return value.toLocaleString("tr-TR", { maximumFractionDigits: 3 });
+}
+
+function renderScoreAudit(candidate) {
+  elements.scoreAuditList.replaceChildren();
+  if (!candidate?.scoreAudit) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "Puan denetimi bekleniyor.";
+    elements.scoreAuditList.append(empty);
+    elements.dataCorrectness.textContent = "Kontrol ediliyor";
+    elements.calculationCorrectness.textContent = "Kontrol ediliyor";
+    elements.predictionCorrectness.textContent = "Kanıt birikiyor";
+    return;
+  }
+
+  for (const [key, audit] of Object.entries(candidate.scoreAudit)) {
+    const details = document.createElement("details");
+    details.className = "score-audit-item";
+    const summary = document.createElement("summary");
+    const title = document.createElement("span");
+    title.innerHTML = `<b>${scoreLabels[key] ?? key}</b><small>${Math.round(audit.score)}/100 ham puan · ağırlık %${audit.weight}</small>`;
+    const contribution = document.createElement("strong");
+    contribution.textContent = `+${audit.weightedContribution.toLocaleString("tr-TR")} toplam puan`;
+    summary.append(title, contribution);
+    const status = document.createElement("p");
+    status.className = "audit-status";
+    status.textContent = "Formül ve matematik kontrol edilebilir · tahmin gücü forward doğrulama bekliyor";
+    const parts = document.createElement("div");
+    parts.className = "audit-parts";
+    for (const component of audit.components ?? []) {
+      const row = document.createElement("div");
+      const points = Number.isFinite(component.points) ? `${component.points > 0 ? "+" : ""}${component.points}` : "—";
+      row.innerHTML = `<span><b>${component.label}</b><small>${component.rule}</small></span><span>${formatAuditInput(component)}</span><strong class="${component.effect === "PENALTY" ? "negative" : component.points > 0 ? "positive" : "muted-text"}">${points}</strong>`;
+      parts.append(row);
+    }
+    details.append(summary, status, parts);
+    elements.scoreAuditList.append(details);
+  }
+
+  const lineage = candidate.dataLineage ?? {};
+  const dataValid = lineage.pointInTimeOrderValid && Boolean(lineage.priceSource);
+  const calculationValid = Number.isFinite(candidate.scoreAuditTotal) && Math.abs(candidate.scoreAuditTotal - candidate.decisionScore) <= 0.11;
+  elements.dataCorrectness.textContent = dataValid ? (lineage.quoteQuality === "VALID" ? "Zaman sırası ve kaynak uygun" : "Zaman sırası uygun · kotasyon işlem için eksik") : "Veri izi eksik";
+  elements.dataCorrectness.className = dataValid ? lineage.quoteQuality === "VALID" ? "positive" : "warning-text" : "negative";
+  elements.calculationCorrectness.textContent = calculationValid ? `Tutarlı · ${candidate.scoreAuditTotal.toLocaleString("tr-TR")} puan` : "Toplam uyuşmuyor";
+  elements.calculationCorrectness.className = calculationValid ? "positive" : "negative";
+  elements.predictionCorrectness.textContent = Number.isFinite(candidate.pTargetFirst) ? "Kalibre edildi" : "Forward kalibrasyon bekliyor";
+  elements.predictionCorrectness.className = Number.isFinite(candidate.pTargetFirst) ? "positive" : "warning-text";
+}
+
 function renderPrediction(predictions) {
   const candidate = predictions?.candidates?.find((item) => item.symbol === state.symbol && item.modelKey === state.model);
   if (!candidate) {
@@ -199,6 +259,7 @@ function renderPrediction(predictions) {
     renderGuidance(null);
     renderCycle(null);
     renderMotorEvidence(null);
+    renderScoreAudit(null);
     return;
   }
   const decisionText = ({ NO_TRADE: "Uzak dur", WATCH: "İzle", PAPER_RESEARCH: "Kağıt araştırma adayı" })[candidate.finalDecision] ?? candidate.finalDecision;
@@ -216,7 +277,7 @@ function renderPrediction(predictions) {
   elements.entryValue.textContent = formatPrice(candidate.entryPrice);
   elements.targetValue.textContent = formatPrice(candidate.targetPrice);
   elements.stopValue.textContent = formatPrice(candidate.stopPrice);
-  elements.timeValue.textContent = Number.isFinite(candidate.expectedMinutes) ? `~${candidate.expectedMinutes} dk` : "Belirsiz";
+  elements.timeValue.textContent = Number.isFinite(candidate.expectedMinutes) ? `~${candidate.expectedMinutes} dk kapasite` : "Belirsiz";
   elements.netTargetValue.textContent = formatPercent(candidate.netTargetPctFeeCaseB * 100);
   elements.vetoText.textContent = candidate.hardVetos.length ? (vetoLabels[candidate.hardVetos[0]] ?? candidate.hardVetos[0]) : "Model henüz doğrulanmadı";
   elements.signalTime.textContent = `Karar zamanı ${formatClock(candidate.decisionAt)}`;
@@ -225,6 +286,7 @@ function renderPrediction(predictions) {
   renderGuidance(candidate);
   renderCycle(candidate);
   renderMotorEvidence(candidate);
+  renderScoreAudit(candidate);
   elements.scoreGrid.replaceChildren(...Object.entries(candidate.scores).map(([key, value]) => {
     const item = document.createElement("article");
     item.className = "score-item";

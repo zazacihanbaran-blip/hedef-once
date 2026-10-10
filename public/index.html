@@ -162,6 +162,17 @@
             <p class="empty-state">Aday verisi bekleniyor.</p>
           </div>
 
+          <h3>Puanın hesabını aç</h3>
+          <p class="guide-intro">Her bölümde ham puanı oluşturan alt kuralları, kullanılan girdiyi ve toplam puana gerçek katkıyı görebilirsin.</p>
+          <div class="score-audit-list" id="scoreAuditList"><p class="empty-state">Puan denetimi bekleniyor.</p></div>
+
+          <h3>Doğruluk hangi seviyede?</h3>
+          <div class="correctness-grid">
+            <article><b>1 · Veri doğruluğu</b><span id="dataCorrectness">Kontrol ediliyor</span><p>Kaynak, zaman damgası, gecikme ve point-in-time sırası kontrol edilir.</p></article>
+            <article><b>2 · Hesap doğruluğu</b><span id="calculationCorrectness">Kontrol ediliyor</span><p>Alt puanların, ağırlıkların ve toplam karar skorunun matematiksel tutarlılığı sınanır.</p></article>
+            <article><b>3 · Tahmin doğruluğu</b><span id="predictionCorrectness">Kanıt birikiyor</span><p>Yalnızca forward hedef-önce-stop sonuçları bu seviyeyi doğrulayabilir.</p></article>
+          </div>
+
           <div class="model-boundary">
             <strong>Henüz söylemediğimiz şey</strong>
             <p>Skor kazanma olasılığı değildir. `Hedef önce`, `stop önce` ve `süre doldu` sonuçları yeterli forward örnek birikmeden yüzde olarak gösterilmez.</p>
