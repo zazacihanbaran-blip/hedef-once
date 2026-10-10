@@ -1,5 +1,5 @@
 {
-  "version": "0.1.3-timing-research",
+  "version": "0.1.4-cycle-explain-research",
   "mode": "RESEARCH_ONLY",
   "barSeconds": 300,
   "researchNotionalUsd": 5000,

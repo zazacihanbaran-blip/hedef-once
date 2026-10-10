@@ -15,7 +15,8 @@ const elements = Object.fromEntries([
   "guidancePanel", "guidanceTitle", "guidanceSummary", "guidanceWaitFor", "metricChangeMeaning",
   "metricVwapMeaning", "metricRangeMeaning", "metricVolumeMeaning", "metricBidAskMeaning",
   "metricSpreadMeaning", "stopMeaning", "netTargetMeaning", "memoryMeaning", "sectorMeaning",
-  "timingStatus", "riskStatus"
+  "timingStatus", "riskStatus", "cycleNumber", "cyclePhaseSummary", "cycleRail", "cycleEvidence",
+  "cycleNext", "cycleInvalidation", "motorEvidence"
 ].map((id) => [id, document.getElementById(id)]));
 
 function formatPrice(value) {
@@ -113,6 +114,79 @@ function renderGuidance(candidate) {
   }));
 }
 
+function renderCycle(candidate) {
+  const cycle = candidate?.cycleAnalysis;
+  elements.cycleNumber.textContent = cycle?.phase === "DATA_BUILDING" ? "…" : Number.isInteger(cycle?.phaseIndex) ? String(cycle.phaseIndex + 1) : "—";
+  document.getElementById("cycleTitle").textContent = cycle?.label ?? "Döngü hesaplanıyor";
+  elements.cyclePhaseSummary.textContent = cycle?.summary ?? "Tamamlanmış 5 dakikalık mumlar bekleniyor.";
+  elements.cycleNext.textContent = cycle?.nextCondition ?? "—";
+  elements.cycleInvalidation.textContent = cycle?.invalidation ?? "—";
+  elements.cycleEvidence.replaceChildren(...((cycle?.evidence?.length ? cycle.evidence : ["Veri bekleniyor."]).map((message) => {
+    const chip = document.createElement("small");
+    chip.textContent = message;
+    return chip;
+  })));
+  elements.cycleRail.querySelectorAll("[data-cycle-index]").forEach((step) => {
+    const index = Number(step.dataset.cycleIndex);
+    step.classList.toggle("active", cycle?.phase !== "DATA_BUILDING" && index === cycle?.phaseIndex);
+    step.classList.toggle("passed", cycle?.phase !== "DATA_BUILDING" && index < cycle?.phaseIndex);
+  });
+}
+
+function evidenceMeaning(key, value, candidate) {
+  const meanings = {
+    ret5m: Number.isFinite(value) ? (value > 0 ? "Son mum yukarı kapandı." : value < 0 ? "Son mum aşağı kapandı." : "Son mum yatay.") : "Ölçülemedi.",
+    ret15m: Number.isFinite(value) ? (value > 0 ? "Kısa yön yukarı." : value < 0 ? "Kısa yön aşağı." : "Kısa yön dengede.") : "Ölçülemedi.",
+    ema: Number.isFinite(candidate?.evidence?.ema3) && Number.isFinite(candidate?.evidence?.ema8)
+      ? candidate.evidence.ema3 > candidate.evidence.ema8 ? "Hızlı ortalama önde; momentum olumlu." : "Hızlı ortalama geride; dönüş tamamlanmadı."
+      : "Ölçülemedi.",
+    rebound: Number.isFinite(value) ? (value > 0.008 ? "Hedefin büyük bölümü geçmiş; kovalamaya dikkat." : value >= 0.002 ? "Dipten anlamlı tepki var." : "Dipten tepki zayıf.") : "Ölçülemedi.",
+    higherLow: value ? "Son dip bir öncekinden yukarıda." : "Yükselen dip henüz yok.",
+    breakout3: value ? "Fiyat yakın tepeyi geçti." : "Yakın tepe henüz aşılmadı.",
+    vwap: Number.isFinite(value) ? (value > 0 ? "Fiyat seans ortalamasının üzerinde." : "Fiyat seans ortalamasının altında.") : "Ölçülemedi.",
+    volume: Number.isFinite(value) ? (value >= 1.2 ? "Son mum olağandan hacimli." : value >= 0.7 ? "Hacim normal aralıkta." : "Katılım zayıf.") : "Hacim oranı ölçülemedi.",
+    atr: Number.isFinite(value) ? "Bir 5 dakikalık mumun olağan hareket kapasitesi." : "Ölçülemedi.",
+    spread: Number.isFinite(value) ? (value <= 3 ? "Giriş maliyeti düşük." : value <= 10 ? "Maliyet kabul edilebilir." : "Giriş maliyeti fazla yüksek.") : "Ölçülemedi.",
+    riskReward: Number.isFinite(value) ? (value >= 1.5 ? "Hedef stopa göre avantajlı." : value >= 1.2 ? "Asgari oran sağlanıyor." : "Alınan risk ödüle göre yüksek.") : "Ölçülemedi."
+  };
+  return meanings[key];
+}
+
+function renderMotorEvidence(candidate) {
+  elements.motorEvidence.querySelectorAll(".evidence-row, .empty-state").forEach((item) => item.remove());
+  if (!candidate) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "Aday verisi bekleniyor.";
+    elements.motorEvidence.append(empty);
+    return;
+  }
+  const evidence = candidate.evidence ?? {};
+  const rows = [
+    ["Son 5 dakika", formatPercent(evidence.ret5m * 100), evidenceMeaning("ret5m", evidence.ret5m, candidate), "Dönüş mumunun ilk işareti"],
+    ["Son 15 dakika", formatPercent(evidence.ret15m * 100), evidenceMeaning("ret15m", evidence.ret15m, candidate), "Satış mı toparlanma mı?"],
+    ["EMA 3 / EMA 8", `${formatPrice(evidence.ema3)} / ${formatPrice(evidence.ema8)}`, evidenceMeaning("ema", null, candidate), "Kısa momentum teyidi"],
+    ["Yakın dipten tepki", formatPercent(evidence.reboundFromRecentLowPct * 100), evidenceMeaning("rebound", evidence.reboundFromRecentLowPct, candidate), "Erken miyiz, geç mi kaldık?"],
+    ["Yükselen dip", evidence.higherLow ? "Var" : "Yok", evidenceMeaning("higherLow", evidence.higherLow, candidate), "Dönüş yapısının teyidi"],
+    ["3 mumluk tepe aşımı", evidence.breakout3 ? "Var" : "Yok", evidenceMeaning("breakout3", evidence.breakout3, candidate), "Yakın direnç kırılımı"],
+    ["VWAP uzaklığı", formatPercent(evidence.vwapDistancePct * 100), evidenceMeaning("vwap", evidence.vwapDistancePct, candidate), "Seans ortalamasına göre konum"],
+    ["Göreli hacim", Number.isFinite(evidence.volumeRatio) ? `${evidence.volumeRatio.toLocaleString("tr-TR")}×` : "—", evidenceMeaning("volume", evidence.volumeRatio, candidate), "Harekete katılım var mı?"],
+    ["5 dk ATR", Number.isFinite(evidence.atr5mPct) ? formatPercent(evidence.atr5mPct * 100) : "—", evidenceMeaning("atr", evidence.atr5mPct, candidate), `Hedef süresi · ${evidence.atrPeriods ?? "—"} mum`],
+    ["Spread", Number.isFinite(evidence.spreadBps) ? `${evidence.spreadBps.toLocaleString("tr-TR")} bps` : "—", evidenceMeaning("spread", evidence.spreadBps, candidate), "Uygulanabilir giriş maliyeti"],
+    ["Hedef / stop oranı", Number.isFinite(candidate.riskReward) ? candidate.riskReward.toLocaleString("tr-TR") : "—", evidenceMeaning("riskReward", candidate.riskReward, candidate), "Hedef önce senaryosunun matematiği"]
+  ];
+  elements.motorEvidence.append(...rows.map(([name, current, meaning, role]) => {
+    const row = document.createElement("div");
+    row.className = "evidence-row";
+    for (const value of [name, current, meaning, role]) {
+      const cell = document.createElement("span");
+      cell.textContent = value;
+      row.append(cell);
+    }
+    return row;
+  }));
+}
+
 function renderPrediction(predictions) {
   const candidate = predictions?.candidates?.find((item) => item.symbol === state.symbol && item.modelKey === state.model);
   if (!candidate) {
@@ -123,6 +197,8 @@ function renderPrediction(predictions) {
     elements.riskStatus.textContent = "—";
     elements.scoreGrid.replaceChildren();
     renderGuidance(null);
+    renderCycle(null);
+    renderMotorEvidence(null);
     return;
   }
   const decisionText = ({ NO_TRADE: "Uzak dur", WATCH: "İzle", PAPER_RESEARCH: "Kağıt araştırma adayı" })[candidate.finalDecision] ?? candidate.finalDecision;
@@ -147,6 +223,8 @@ function renderPrediction(predictions) {
   elements.hardVetoList.textContent = candidate.hardVetos.length ? candidate.hardVetos.map((code) => vetoLabels[code] ?? code).join(" · ") : "Yok";
   elements.softVetoList.textContent = candidate.softVetos.length ? candidate.softVetos.map((code) => vetoLabels[code] ?? code).join(" · ") : "Yok";
   renderGuidance(candidate);
+  renderCycle(candidate);
+  renderMotorEvidence(candidate);
   elements.scoreGrid.replaceChildren(...Object.entries(candidate.scores).map(([key, value]) => {
     const item = document.createElement("article");
     item.className = "score-item";

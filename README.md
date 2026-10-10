@@ -9,6 +9,8 @@ Arayüzde her teknik verinin yanında günlük Türkçe karşılığı bulunur. 
 
 Prediction motoru artık günlük hisse yönünü ana karar olarak kullanmaz. +%1/+%1,5 hedefi için tamamlanmış 5 dakikalık mumlarda satış sonrası dönüşü, kısa ortalama ivmesini, yükselen dip veya üç mumluk kırılımı, yakın desteğe göre stop uzaklığını ve hedefe tahmini süreyi birlikte ölçer. Memory, sektör, makro ve haber katmanları bağlam ve risk uyarısıdır; güçlü bir yakın dönem tetiğini tek başına iptal etmez. Arayüz `Giriş penceresi: Açık / Hazırlanıyor / Kapalı / Engelli` ve `Taktik risk: Düşük / Orta / Yüksek` alanlarını gösterir.
 
+Arayüzdeki **Döngü Radarı** fiyatı yedi fazda açıklar: satış dalgası, satıcı yorulması, dip testi, ilk tepki, teyit, hedef rotasyonu ve yeniden satış. Her aday sinyal fazın nedenini, sonraki faz için gereken koşulu, fikri bozan durumu ve kullanılan kısa vadeli kanıtları taşır. **Motoru Anla** bölümü karar ağırlıklarını ve o anda kullanılan EMA, 5/15 dakikalık hareket, dipten tepki, yükselen dip, yakın tepe kırılımı, VWAP, hacim, ATR, spread ve hedef/stop oranını günlük Türkçeyle gösterir.
+
 ## Çalıştırma
 
 Node.js 20 veya üzeri gerekir. Ek paket kurulmaz.

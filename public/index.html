@@ -61,6 +61,35 @@
         </div>
       </section>
 
+      <section class="cycle-panel" aria-labelledby="cycleTitle">
+        <div class="panel-heading">
+          <div><h2>Döngü Radarı</h2><p>Hissenin gün içindeki satış → yorulma → tepki → hedef çemberi</p></div>
+          <span class="source-tag">5 DK FAZI</span>
+        </div>
+        <div class="cycle-current">
+          <div class="cycle-orbit" aria-hidden="true"><span id="cycleNumber">—</span></div>
+          <div>
+            <span>Şu an bulunduğumuz faz</span>
+            <h3 id="cycleTitle">Döngü hesaplanıyor</h3>
+            <p id="cyclePhaseSummary">Tamamlanmış 5 dakikalık mumlar bekleniyor.</p>
+          </div>
+        </div>
+        <div class="cycle-rail" id="cycleRail" aria-label="Gün içi fiyat döngüsü">
+          <div data-cycle-index="0"><b>1</b><span>Satış dalgası</span><small>Fiyat hızla aşağı iner</small></div>
+          <div data-cycle-index="1"><b>2</b><span>Satıcı yorulması</span><small>Düşüş hızı azalır</small></div>
+          <div data-cycle-index="2"><b>3</b><span>Dip testi</span><small>Denge alanı aranır</small></div>
+          <div data-cycle-index="3"><b>4</b><span>İlk tepki</span><small>Dönüş mumu oluşur</small></div>
+          <div data-cycle-index="4"><b>5</b><span>Teyit</span><small>Yükselen dip / kırılım</small></div>
+          <div data-cycle-index="5"><b>6</b><span>Hedef rotasyonu</span><small>+%1 alanı araştırılır</small></div>
+          <div data-cycle-index="6"><b>7</b><span>Yeniden satış</span><small>Yeni döngü başlar</small></div>
+        </div>
+        <div class="cycle-explain-grid">
+          <article><span>Şu anda gördüğümüz</span><div id="cycleEvidence"><small>Veri bekleniyor.</small></div></article>
+          <article><span>Bir sonraki faz için</span><strong id="cycleNext">—</strong></article>
+          <article><span>Bu fikri ne bozar?</span><strong id="cycleInvalidation">—</strong></article>
+        </div>
+      </section>
+
       <section class="price-path" aria-label="İşlem planı">
         <div class="path-point"><span>1</span><small>Giriş bölgesi</small><strong id="entryValue">Skor sonrası</strong></div>
         <div class="path-line"></div>
@@ -105,6 +134,40 @@
         <div class="score-grid" id="scoreGrid"></div>
         <div class="veto-summary"><div><span>Kesin engeller</span><strong id="hardVetoList">—</strong></div><div><span>Dikkat noktaları</span><strong id="softVetoList">—</strong></div></div>
       </section>
+
+      <details class="engine-guide" open>
+        <summary><span><b>Motoru Anla</b><small>Neyi ölçüyoruz, nasıl yorumluyoruz ve karar nerede duruyor?</small></span><i>⌄</i></summary>
+        <div class="engine-guide-body">
+          <div class="engine-principles">
+            <article><span>ANA SORU</span><strong>Hedef stop'tan önce gelebilir mi?</strong><p>Motor hissenin uzun vadede iyi olup olmadığını değil, bu girişten sonra kısa hedefe önce ulaşma ihtimalini araştırır.</p></article>
+            <article><span>ANA TETİK</span><strong>5 dakikalık rotation</strong><p>Satışın yavaşlaması, dipten tepki, yükselen dip ve yakın tepe aşımı kararın merkezindedir.</p></article>
+            <article><span>BAĞLAM</span><strong>Sektör, makro ve haber</strong><p>Bunlar riski büyütür veya küçültür. Güçlü mikro dönüşü tek başına yok saymaz; kesin engel varsa işlem kilitlenir.</p></article>
+          </div>
+
+          <h3>Karar ağırlıkları</h3>
+          <div class="weight-grid">
+            <div><b>%35</b><span>Giriş zamanlaması<small>Döngünün doğru anında mıyız?</small></span></div>
+            <div><b>%20</b><span>Hedef süresi<small>+%1 makul sürede gelebilir mi?</small></span></div>
+            <div><b>%20</b><span>Hedef / stop<small>Alınan risk ödüle değer mi?</small></span></div>
+            <div><b>%10</b><span>Giriş kalitesi<small>Spread ve uygulanabilir fiyat</small></span></div>
+            <div><b>%7</b><span>Memory / sektör<small>Benzer varlıklar destekliyor mu?</small></span></div>
+            <div><b>%3</b><span>Haber / olay<small>Yakın şok riski var mı?</small></span></div>
+            <div><b>%3</b><span>Genel piyasa<small>QQQ, SPY ve VIX bağlamı</small></span></div>
+            <div><b>%2</b><span>Yorgunluk riski<small>Hareketin çoğu geçmiş mi?</small></span></div>
+          </div>
+
+          <h3>Bu kararda kullanılan gerçek ölçümler</h3>
+          <div class="evidence-table" id="motorEvidence">
+            <div class="evidence-head"><span>Ölçüm</span><span>Şu an</span><span>Bizim için anlamı</span><span>Karardaki rolü</span></div>
+            <p class="empty-state">Aday verisi bekleniyor.</p>
+          </div>
+
+          <div class="model-boundary">
+            <strong>Henüz söylemediğimiz şey</strong>
+            <p>Skor kazanma olasılığı değildir. `Hedef önce`, `stop önce` ve `süre doldu` sonuçları yeterli forward örnek birikmeden yüzde olarak gösterilmez.</p>
+          </div>
+        </div>
+      </details>
 
       <section class="watchlist-panel">
         <div class="panel-heading"><div><h2>İzlenen piyasa</h2><p>Memory, sektör ve makro sepetinin son erişilebilir değerleri</p></div><span id="observedAt">Son toplama: —</span></div>
